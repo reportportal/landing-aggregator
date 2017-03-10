@@ -1,0 +1,10 @@
+sudo: false
+language: go
+go:
+  - 1.8.x
+
+script:
+  - make checkstyle test build
+
+after_success:
+ - curl --request POST "https://goreportcard.com/checks" --data "repo=github.com/reportportal/landing-info"

@@ -1,0 +1,79 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "p+pmJFrrERVu0gaKveWNl0ygl+I=",
+			"path": "github.com/caarlos0/env",
+			"revision": "9474f19b515f52326c7d197d2d097caa7fc7485e",
+			"revisionTime": "2017-02-03T21:17:07Z"
+		},
+		{
+			"checksumSHA1": "SPQcWDUN+wcTThipcR9EzX4t3E8=",
+			"path": "github.com/cenkalti/backoff",
+			"revision": "b02f2bbce11d7ea6b97f282ef1771b0fe2f65ef3",
+			"revisionTime": "2016-10-20T19:44:10Z"
+		},
+		{
+			"checksumSHA1": "mO6yxa23lXY/HZ5nLTr1XgPAuXU=",
+			"path": "github.com/dghubble/go-twitter/twitter",
+			"revision": "fc93bb35701bb85903d17daa80a21a824b9c592f",
+			"revisionTime": "2017-02-19T21:55:44Z"
+		},
+		{
+			"checksumSHA1": "yLfKa2rrb1kpNopWZtRTzI+PYdg=",
+			"path": "github.com/dghubble/oauth1",
+			"revision": "3c7784d12fed88888d612324ea6897f7dc30723e",
+			"revisionTime": "2017-02-19T19:42:38Z"
+		},
+		{
+			"checksumSHA1": "BsoROpVGqRTsVkKPperv5VDv+lE=",
+			"path": "github.com/dghubble/sling",
+			"revision": "eb56e89ac5088bebb12eef3cb4b293300f43608b",
+			"revisionTime": "2016-12-18T11:07:05Z"
+		},
+		{
+			"checksumSHA1": "yyAzHoiVLu+xywYI2BDyRq6sOqE=",
+			"path": "github.com/google/go-querystring/query",
+			"revision": "9235644dd9e52eeae6fa48efd539fdc351a0af53",
+			"revisionTime": "2016-03-11T01:20:12Z"
+		},
+		{
+			"checksumSHA1": "IAm3FQJ8F1eP4aFmE1sGEjbxK2Y=",
+			"path": "github.com/gorilla/handlers",
+			"revision": "6d39a51b4b5238fb818fe7ee0d0527dc5bf16d07",
+			"revisionTime": "2017-02-09T23:41:56Z"
+		},
+		{
+			"checksumSHA1": "OvrNwcBO+xO4FZ7eMbazho1C3t0=",
+			"path": "goji.io",
+			"revision": "0d89ff54b2c18c9c4ba530e32496aef902d3c6cd",
+			"revisionTime": "2016-11-14T00:05:42Z"
+		},
+		{
+			"checksumSHA1": "WjH6BtYreucaiAqweH8EVTuzfq4=",
+			"path": "goji.io/internal",
+			"revision": "0d89ff54b2c18c9c4ba530e32496aef902d3c6cd",
+			"revisionTime": "2016-11-14T00:05:42Z"
+		},
+		{
+			"checksumSHA1": "gCCLZgKj2pBECowciB75JYaJRx0=",
+			"path": "goji.io/pat",
+			"revision": "0d89ff54b2c18c9c4ba530e32496aef902d3c6cd",
+			"revisionTime": "2016-11-14T00:05:42Z"
+		},
+		{
+			"checksumSHA1": "HiFwLEdH2hi65LxmHk2lKjA3CU8=",
+			"path": "goji.io/pattern",
+			"revision": "0d89ff54b2c18c9c4ba530e32496aef902d3c6cd",
+			"revisionTime": "2016-11-14T00:05:42Z"
+		},
+		{
+			"checksumSHA1": "Y+HGqEkYM15ir+J93MEaHdyFy0c=",
+			"path": "golang.org/x/net/context",
+			"revision": "61557ac0112b576429a0df080e1c2cef5dfbb642",
+			"revisionTime": "2017-01-26T11:54:58Z"
+		}
+	],
+	"rootPath": "github.com/reportportal/landing-aggregator"
+}
