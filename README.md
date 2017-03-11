@@ -31,3 +31,8 @@ Returns cache of tweets searched by provided in configuration hashtag
  
 ```/versions```
 Returns latest versions of ReportPortal's Docker Images. Obtains this information from Docker HUB API
+
+## Production deployment
+Several instances of app are supposed to be deployed to provide fault-tolerance to distribute load.
+There is Traefik which is reverse-proxy and load-balancer which does not require any service registry and allows zero-conf 
+discovery via Docker API. Example can be found [here](docker-compose.yml)
