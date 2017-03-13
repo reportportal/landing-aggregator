@@ -43,8 +43,7 @@ fmt:
 
 # Builds the project for linux-based OS
 build: vendor
-	CGO_ENABLED=0 GOOS=linux $(GO) build -o ${BINARY_DIR}/rpLandingInfo ./landinginfo.go
-	#$(GO) build -o ${BINARY_DIR}/rpLandingInfo ./landinginfo.go
+	$(GO) build -o ${BINARY_DIR}/rpLandingInfo ./landinginfo.go
 
 # Builds docker image
 docker: build
@@ -53,3 +52,8 @@ docker: build
 # clean-ups stuff
 clean:
 	if [ -d ${BINARY_DIR} ] ; then rm -r ${BINARY_DIR} ; fi
+
+release_build: vendor
+	script/build.sh
+release: release_build
+	script/release.sh $v

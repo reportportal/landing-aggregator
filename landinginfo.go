@@ -12,6 +12,19 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"github.com/avarabyeu/goRP/common"
+)
+
+var (
+	// Branch contains the current Git revision. Use make to build to make
+	// sure this gets set.
+	Branch string
+
+	// BuildDate contains the date of the current build.
+	BuildDate string
+
+	// Version contains version
+	Version string
 )
 
 func main() {
@@ -47,6 +60,23 @@ func main() {
 				json.NewEncoder(w).Encode(map[string]string{"error": "cannot serialize response"})
 			}
 		})
+	})
+
+	buildInfo := &common.BuildInfo{
+		Version:   Version,
+		Branch:    Branch,
+		BuildDate: BuildDate,
+	}
+	mux.HandleFunc(pat.Get("/info"), func(w http.ResponseWriter, rq *http.Request) {
+
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		err := json.NewEncoder(w).Encode(buildInfo)
+		if nil != err {
+			json.NewEncoder(w).Encode(map[string]string{"error": "cannot serialize response"})
+		}
+
 	})
 
 	mux.Use(func(next http.Handler) http.Handler {
