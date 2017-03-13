@@ -9,13 +9,13 @@ fi
 
 [[ -n "$DOCKER_USER" ]] || read -p "Enter docker user: " DOCKER_USER
 if [[ -z "$DOCKER_USER" ]] ; then
-	echo "Cannot proccess without docker user"
+	echo "Cannot process without docker user"
 	exit 1
 fi
 
 [[ -n "$DOCKER_PASS" ]] || read -p "Enter docker pass: " DOCKER_PASS
 if [[ -z "$DOCKER_PASS" ]] ; then
-	echo "Cannot proccess without docker pass"
+	echo "Cannot process without docker pass"
 	exit 1
 fi
 
