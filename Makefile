@@ -53,7 +53,5 @@ docker: build
 clean:
 	if [ -d ${BINARY_DIR} ] ; then rm -r ${BINARY_DIR} ; fi
 
-release_build: vendor
-	script/build.sh
-release: release_build
+release: vendor test
 	script/release.sh $v
