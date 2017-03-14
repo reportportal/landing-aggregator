@@ -54,4 +54,4 @@ clean:
 	if [ -d ${BINARY_DIR} ] ; then rm -r ${BINARY_DIR} ; fi
 
 release: vendor test
-	script/release.sh $v
+	scripts/release.sh $v
