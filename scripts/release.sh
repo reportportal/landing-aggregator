@@ -31,6 +31,6 @@ fi
 #git add $basedir/main.go
 #git commit -S -m "Release v$v"
 #git commit -S --amend
-git tag v$v -m "Tag v${v}"
+git tag v$v -m "Tag v${v}" && git push --tags
 
 $prgdir/release-docker.sh $v
