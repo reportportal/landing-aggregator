@@ -2,7 +2,7 @@ FROM scratch
 
 MAINTAINER Andrei Varabyeu <andrei_varabyeu@epam.com>
 
-ADD script/ca-certificates.crt /etc/ssl/certs/
+ADD scripts/ca-certificates.crt /etc/ssl/certs/
 
 ADD ./bin/rpLandingInfo /
 

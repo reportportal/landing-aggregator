@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 
+v=$1
 [[ -n "$v" ]] || read -p "Enter version (e.g. 1.0.4): " v
 if [[ -z "$v" ]] ; then
 	echo "Usage: $0 [<version>] (e.g. 1.0.4)"

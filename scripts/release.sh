@@ -39,4 +39,4 @@ git tag -l | xargs git tag -d && git fetch -t
 echo "Creating tag $v"
 git tag v$v -m "Tag v${v}" && git push --tags
 
-$prgdir/release-docker.sh $v
+$prgdir/release-docker.sh ${v}
