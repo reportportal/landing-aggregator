@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/avarabyeu/goRP/commons"
 	"github.com/caarlos0/env"
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/reportportal/landing-aggregator/info"
@@ -9,7 +10,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"github.com/avarabyeu/goRP/commons"
 )
 
 var (
