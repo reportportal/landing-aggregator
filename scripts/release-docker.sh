@@ -21,7 +21,7 @@ if [[ -z "$DOCKER_PASS" ]] ; then
 fi
 
 echo "Building Docker image..."
-docker build -t reportportal/landing-info .
+docker build -t reportportal/landing-aggregator .
 docker login -u $DOCKER_USER -p $DOCKER_PASS
 docker tag reportportal/landing-aggregator reportportal/landing-aggregator:$v
 
