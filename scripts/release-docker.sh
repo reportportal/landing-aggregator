@@ -19,11 +19,12 @@ if [[ -z "$DOCKER_PASS" ]] ; then
 	exit 1
 fi
 
-# create docker image reportportal/landing-info
-echo "Updating docker reportportal/landing-info image..."
+echo "Building Docker image..."
 docker build -t reportportal/landing-info .
 docker login -u $DOCKER_USER -p $DOCKER_PASS
 docker tag reportportal/landing-aggregator reportportal/landing-aggregator:$v
+
+echo "Pushing to DockerHUB..."
 docker push reportportal/landing-aggregator:$v
 
 echo "Deployed to DockerHUB"

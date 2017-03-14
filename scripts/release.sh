@@ -16,6 +16,7 @@ if [[ -z "$v" ]]; then
 	exit 1
 fi
 
+echo "Building binary..."
 CGO_ENABLED=0 GOOS=linux go build -ldflags "-X main.Branch=${COMMIT_HASH} -X main.BuildDate=${BUILD_DATE} -X main.Version=${v}" -o bin/rpLandingInfo ./landinginfo.go
 
 #grep -q "$v" README.md || echo "README.md not updated"
@@ -31,6 +32,11 @@ fi
 #git add $basedir/main.go
 #git commit -S -m "Release v$v"
 #git commit -S --amend
+
+echo "Syncing git repo state"
+git fetch --prune --tags
+
+echo "Creating tag $v"
 git tag v$v -m "Tag v${v}" && git push --tags
 
 $prgdir/release-docker.sh $v
