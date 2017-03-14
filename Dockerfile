@@ -1,10 +1,12 @@
-FROM alpine:3.5
+FROM scratch
 
 MAINTAINER Andrei Varabyeu <andrei_varabyeu@epam.com>
 
-RUN apk add --no-cache ca-certificates
+ADD script/ca-certificates.crt /etc/ssl/certs/
 
 ADD ./bin/rpLandingInfo /
+
+ENV PORT=8080
 
 EXPOSE 8080
 ENTRYPOINT ["/rpLandingInfo"]
