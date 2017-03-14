@@ -34,7 +34,7 @@ fi
 #git commit -S --amend
 
 echo "Syncing git repo state"
-git fetch --prune --tags
+git tag -l | xargs git tag -d && git fetch -t
 
 echo "Creating tag $v"
 git tag v$v -m "Tag v${v}" && git push --tags
