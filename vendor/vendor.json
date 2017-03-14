@@ -3,6 +3,12 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "r4vLtjDP+htvCppx0OKC2a3D54U=",
+			"path": "github.com/avarabyeu/goRP/commons",
+			"revision": "d57922612698feb23d59c6b3813742f3d5f363ce",
+			"revisionTime": "2017-03-14T07:49:37Z"
+		},
+		{
 			"checksumSHA1": "p+pmJFrrERVu0gaKveWNl0ygl+I=",
 			"path": "github.com/caarlos0/env",
 			"revision": "9474f19b515f52326c7d197d2d097caa7fc7485e",
@@ -37,12 +43,6 @@
 			"path": "github.com/google/go-querystring/query",
 			"revision": "9235644dd9e52eeae6fa48efd539fdc351a0af53",
 			"revisionTime": "2016-03-11T01:20:12Z"
-		},
-		{
-			"checksumSHA1": "IAm3FQJ8F1eP4aFmE1sGEjbxK2Y=",
-			"path": "github.com/gorilla/handlers",
-			"revision": "6d39a51b4b5238fb818fe7ee0d0527dc5bf16d07",
-			"revisionTime": "2017-02-09T23:41:56Z"
 		},
 		{
 			"checksumSHA1": "OvrNwcBO+xO4FZ7eMbazho1C3t0=",

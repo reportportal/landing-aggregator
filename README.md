@@ -12,9 +12,10 @@ make help:
 	@echo "checkstyle  - executes bunch of checkstyle validators"
 	@echo "fmt         - formats the project"
 	@echo "test        - executes unit tests"
-	@echo "build       - builds Linux binary"
+	@echo "build       - builds binary"
 	@echo "docker      - Builds docker image"
 	@echo "clean       - Cleans build-related files from working directory"
+	@echo "release     - Builds docker container and pushes new version to DockerHUB"
 ```
 ```bash make docker ``` 
 builds image with name 'reportportal/landing-info'
