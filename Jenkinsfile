@@ -3,6 +3,10 @@ node {
 
     checkout scm
 
+     stage('Compile') {
+          sh "make checkstyle test build_docker"
+     }
+
      stage('Create Docker Image') {
           docker.build("reportportal/landing-aggregator:latest")
      }

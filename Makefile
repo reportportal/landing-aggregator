@@ -45,9 +45,13 @@ fmt:
 build: vendor
 	$(GO) build -o ${BINARY_DIR}/rpLandingInfo ./landinginfo.go
 
+# Builds the project for linux-based OS
+build_docker: vendor
+	CGO_ENABLED=0 GOOS=linux $(GO) build -o ${BINARY_DIR}/rpLandingInfo ./landinginfo.go
+
 # Builds docker image
-docker: build
-	docker build -t reportportal/landing-info .
+docker: build_docker
+	docker build -t reportportal/landing-aggregator .
 
 # clean-ups stuff
 clean:
