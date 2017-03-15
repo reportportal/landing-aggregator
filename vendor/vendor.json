@@ -3,10 +3,10 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "r4vLtjDP+htvCppx0OKC2a3D54U=",
+			"checksumSHA1": "jk+ZlRnt5el28qLN3rdLjpnblkc=",
 			"path": "github.com/avarabyeu/goRP/commons",
-			"revision": "d57922612698feb23d59c6b3813742f3d5f363ce",
-			"revisionTime": "2017-03-14T07:49:37Z"
+			"revision": "fd93065a0b26ef8b80bc30fc1a9aaa2fe5ac9bf7",
+			"revisionTime": "2017-03-15T22:29:26Z"
 		},
 		{
 			"checksumSHA1": "p+pmJFrrERVu0gaKveWNl0ygl+I=",
@@ -15,10 +15,17 @@
 			"revisionTime": "2017-02-03T21:17:07Z"
 		},
 		{
-			"checksumSHA1": "SPQcWDUN+wcTThipcR9EzX4t3E8=",
+			"checksumSHA1": "nA+gmB0uOk+I06FhtCMrWlhHp00=",
 			"path": "github.com/cenkalti/backoff",
-			"revision": "b02f2bbce11d7ea6b97f282ef1771b0fe2f65ef3",
-			"revisionTime": "2016-10-20T19:44:10Z"
+			"revision": "3db60c813733fce657c114634171689bbf1f8dee",
+			"revisionTime": "2017-02-01T15:12:07Z"
+		},
+		{
+			"checksumSHA1": "OFu4xJEIjiI8Suu+j/gabfp+y6Q=",
+			"origin": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",
+			"path": "github.com/davecgh/go-spew/spew",
+			"revision": "4d4bfba8f1d1027c4fdbe371823030df51419987",
+			"revisionTime": "2017-01-30T11:31:45Z"
 		},
 		{
 			"checksumSHA1": "mO6yxa23lXY/HZ5nLTr1XgPAuXU=",
@@ -45,6 +52,19 @@
 			"revisionTime": "2016-03-11T01:20:12Z"
 		},
 		{
+			"checksumSHA1": "zKKp5SZ3d3ycKe4EKMNT0BqAWBw=",
+			"origin": "github.com/stretchr/testify/vendor/github.com/pmezard/go-difflib/difflib",
+			"path": "github.com/pmezard/go-difflib/difflib",
+			"revision": "4d4bfba8f1d1027c4fdbe371823030df51419987",
+			"revisionTime": "2017-01-30T11:31:45Z"
+		},
+		{
+			"checksumSHA1": "JXUVA1jky8ZX8w09p2t5KLs97Nc=",
+			"path": "github.com/stretchr/testify/assert",
+			"revision": "4d4bfba8f1d1027c4fdbe371823030df51419987",
+			"revisionTime": "2017-01-30T11:31:45Z"
+		},
+		{
 			"checksumSHA1": "OvrNwcBO+xO4FZ7eMbazho1C3t0=",
 			"path": "goji.io",
 			"revision": "0d89ff54b2c18c9c4ba530e32496aef902d3c6cd",
@@ -53,6 +73,12 @@
 		{
 			"checksumSHA1": "WjH6BtYreucaiAqweH8EVTuzfq4=",
 			"path": "goji.io/internal",
+			"revision": "0d89ff54b2c18c9c4ba530e32496aef902d3c6cd",
+			"revisionTime": "2016-11-14T00:05:42Z"
+		},
+		{
+			"checksumSHA1": "j/mjzYLjgCcJlqCmnZIqYVKWTTY=",
+			"path": "goji.io/middleware",
 			"revision": "0d89ff54b2c18c9c4ba530e32496aef902d3c6cd",
 			"revisionTime": "2016-11-14T00:05:42Z"
 		},
@@ -71,8 +97,8 @@
 		{
 			"checksumSHA1": "Y+HGqEkYM15ir+J93MEaHdyFy0c=",
 			"path": "golang.org/x/net/context",
-			"revision": "61557ac0112b576429a0df080e1c2cef5dfbb642",
-			"revisionTime": "2017-01-26T11:54:58Z"
+			"revision": "a6577fac2d73be281a500b310739095313165611",
+			"revisionTime": "2017-03-08T20:54:49Z"
 		}
 	],
 	"rootPath": "github.com/reportportal/landing-aggregator"

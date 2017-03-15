@@ -1,15 +1,14 @@
 package main
 
 import (
-	"github.com/avarabyeu/goRP/commons"
 	"github.com/caarlos0/env"
-	"github.com/dghubble/go-twitter/twitter"
-	"github.com/reportportal/landing-aggregator/info"
 	"goji.io"
 	"goji.io/pat"
 	"log"
 	"net/http"
 	"strconv"
+	"github.com/avarabyeu/goRP/commons"
+	"github.com/reportportal/landing-aggregator/info"
 )
 
 var (
@@ -31,11 +30,12 @@ func main() {
 	dockerHubTags := info.NewDockerHubTags()
 
 	mux := goji.NewMux()
+
 	mux.HandleFunc(pat.Get("/twitter"), func(w http.ResponseWriter, rq *http.Request) {
 
-		tweets := []*twitter.Tweet{}
+		tweets := []*info.TweetInfo{}
 		twitsBuffer.Do(func(tweet interface{}) {
-			tweets = append(tweets, tweet.(*twitter.Tweet))
+			tweets = append(tweets, tweet.(*info.TweetInfo))
 		})
 		commons.WriteJSON(http.StatusOK, tweets, w)
 	})
@@ -51,10 +51,14 @@ func main() {
 		Branch:    Branch,
 		BuildDate: BuildDate,
 	}
-	mux.HandleFunc(pat.Get("/info"), func(w http.ResponseWriter, rq *http.Request) {
+	mux.Handle(pat.Get("/info"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
 		commons.WriteJSON(http.StatusOK, buildInfo, w)
 
-	})
+	}))
+
+	mux.Use(commons.NoHandlerFound(func(w http.ResponseWriter, rq *http.Request) {
+		commons.WriteJSON(http.StatusNotFound, map[string]string{"error": "not found"}, w)
+	}))
 
 	// listen and server on mentioned port
 	log.Printf("Starting on port %d", conf.Port)

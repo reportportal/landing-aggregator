@@ -6,6 +6,13 @@ import (
 	"github.com/reportportal/landing-aggregator/buf"
 )
 
+//TweetInfo represents short tweet version
+type TweetInfo struct {
+	Text      string        `json:"text"`
+	User      string        `json:"user"`
+	CreatedAt string        `json:"created_at"`
+}
+
 //BufferTwits creates new synchronized auto-updating buffer of twits searched by provided hashtag
 func BufferTwits(consumerKey string,
 	consumerSecret string,
@@ -31,7 +38,7 @@ func BufferTwits(consumerKey string,
 	// useful for situation when there are rare updates
 	search, _, _ := client.Search.Tweets(searchTweetParams)
 	for _, tweet := range search.Statuses {
-		buffer.Add(&tweet)
+		buffer.Add(toTweetInfo(&tweet))
 	}
 
 	go func() {
@@ -44,9 +51,17 @@ func BufferTwits(consumerKey string,
 		for message := range stream.Messages {
 			tweet, ok := message.(*twitter.Tweet)
 			if ok {
-				buffer.Add(tweet)
+				buffer.Add(toTweetInfo(tweet))
 			}
 		}
 	}()
 	return buffer
+}
+
+//toTweetInfo Build short tweet object
+func toTweetInfo(tweet *twitter.Tweet) *TweetInfo {
+	return &TweetInfo{
+		Text:      tweet.Text,
+		CreatedAt: tweet.CreatedAt,
+		User:      tweet.User.Name}
 }
