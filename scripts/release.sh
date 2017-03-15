@@ -20,7 +20,7 @@ echo "Building binary..."
 CGO_ENABLED=0 GOOS=linux go build -ldflags "-X main.Branch=${COMMIT_HASH} -X main.BuildDate=${BUILD_DATE} -X main.Version=${v}" -o bin/rpLandingInfo ./landinginfo.go
 
 #grep -q "$v" README.md || echo "README.md not updated"
-#grep -q "$v" CHANGELOG.md || echo "CHANGELOG.md not updated"
+grep -q "$v" CHANGELOG.md || echo "CHANGELOG.md not updated"
 
 read -p "Release version $v? (y/N) " -n 1 -r
 echo
@@ -32,11 +32,10 @@ fi
 #git add $basedir/main.go
 #git commit -S -m "Release v$v"
 #git commit -S --amend
+$prgdir/release-docker.sh ${v}
 
 echo "Syncing git repo state"
 git tag -l | xargs git tag -d && git fetch -t
 
 echo "Creating tag $v"
 git tag v$v -m "Tag v${v}" && git push --tags
-
-$prgdir/release-docker.sh ${v}
