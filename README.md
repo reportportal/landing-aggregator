@@ -3,6 +3,9 @@
 [![Build Status](https://travis-ci.org/reportportal/landing-aggregator.svg?branch=master)](https://travis-ci.org/reportportal/landing-aggregator)
 [![Go Report Card](https://goreportcard.com/badge/github.com/reportportal/landing-aggregator)](https://goreportcard.com/report/github.com/reportportal/landing-aggregator)
 
+Micro-service which serves next:
+* cache tweets from https://twitter.com/ReportPortal_io
+* return latest version numbers for ReportPortal services
 
 ## Build
 
