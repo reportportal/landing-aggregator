@@ -14,15 +14,15 @@ services:
       - /dev/null:/traefik.toml
 
   landinginfo:
-    image: reportportal/landing-info
+    image: reportportal/landing-aggregator:latest
     networks:
           - webgateway
-    environment:
-      - CONSUMER={{INSERT}}
-      - CONSUMER_SECRET={{INSERT}}
-      - TOKEN={{INSERT}}
-      - TOKEN_SECRET={{INSERT}}
-      - HASHTAG=reportportal_io
+#    environment:
+#      - CONSUMER={{INSERT}}
+#      - CONSUMER_SECRET={{INSERT}}
+#      - TOKEN={{INSERT}}
+#      - TOKEN_SECRET={{INSERT}}
+#      - HASHTAG=reportportal_io
     labels:
       - "traefik.backend=landing-info"
       - "traefik.frontend.rule=PathPrefix:/"
