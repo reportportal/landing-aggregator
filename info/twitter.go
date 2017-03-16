@@ -4,6 +4,7 @@ import (
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
 	"github.com/reportportal/landing-aggregator/buf"
+	"log"
 )
 
 //TweetInfo represents short tweet version
@@ -36,7 +37,10 @@ func BufferTwits(consumerKey string,
 
 	// initially fill the buffer with existing tweets
 	// useful for situation when there are rare updates
-	search, _, _ := client.Search.Tweets(searchTweetParams)
+	search, _, err := client.Search.Tweets(searchTweetParams)
+	if nil != err {
+		log.Printf("Cannot load tweets: %s", err.Error())
+	}
 	for _, tweet := range search.Statuses {
 		buffer.Add(toTweetInfo(&tweet))
 	}
@@ -46,7 +50,10 @@ func BufferTwits(consumerKey string,
 			Track:         []string{searchTag},
 			StallWarnings: twitter.Bool(true),
 		}
-		stream, _ := client.Streams.Filter(params)
+		stream, err := client.Streams.Filter(params)
+		if nil != err {
+			log.Printf("Cannot load tweets stream: %s", err.Error())
+		}
 
 		for message := range stream.Messages {
 			tweet, ok := message.(*twitter.Tweet)
