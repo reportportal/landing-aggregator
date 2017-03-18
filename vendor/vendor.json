@@ -3,10 +3,10 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "jk+ZlRnt5el28qLN3rdLjpnblkc=",
+			"checksumSHA1": "z7Xnmj1fW6n5c0vZqZ0uR+S/fqQ=",
 			"path": "github.com/avarabyeu/goRP/commons",
-			"revision": "fd93065a0b26ef8b80bc30fc1a9aaa2fe5ac9bf7",
-			"revisionTime": "2017-03-15T22:29:26Z"
+			"revision": "8e54c245e84ee3710f98f1169c9f09e25b3dea6d",
+			"revisionTime": "2017-03-18T19:08:10Z"
 		},
 		{
 			"checksumSHA1": "p+pmJFrrERVu0gaKveWNl0ygl+I=",
@@ -15,10 +15,10 @@
 			"revisionTime": "2017-02-03T21:17:07Z"
 		},
 		{
-			"checksumSHA1": "nA+gmB0uOk+I06FhtCMrWlhHp00=",
+			"checksumSHA1": "SPQcWDUN+wcTThipcR9EzX4t3E8=",
 			"path": "github.com/cenkalti/backoff",
-			"revision": "3db60c813733fce657c114634171689bbf1f8dee",
-			"revisionTime": "2017-02-01T15:12:07Z"
+			"revision": "b02f2bbce11d7ea6b97f282ef1771b0fe2f65ef3",
+			"revisionTime": "2016-10-20T19:44:10Z"
 		},
 		{
 			"checksumSHA1": "OFu4xJEIjiI8Suu+j/gabfp+y6Q=",
@@ -97,8 +97,8 @@
 		{
 			"checksumSHA1": "Y+HGqEkYM15ir+J93MEaHdyFy0c=",
 			"path": "golang.org/x/net/context",
-			"revision": "a6577fac2d73be281a500b310739095313165611",
-			"revisionTime": "2017-03-08T20:54:49Z"
+			"revision": "61557ac0112b576429a0df080e1c2cef5dfbb642",
+			"revisionTime": "2017-01-26T11:54:58Z"
 		}
 	],
 	"rootPath": "github.com/reportportal/landing-aggregator"

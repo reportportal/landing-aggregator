@@ -36,13 +36,13 @@ func main() {
 		tweets := []*info.TweetInfo{}
 		twitsBuffer.Do(func(tweet interface{}) {
 			tweets = append(tweets, tweet.(*info.TweetInfo))
+			sendRS(http.StatusOK, tweets, w, rq)
 		})
-		commons.WriteJSON(http.StatusOK, tweets, w)
 	})
 
 	mux.HandleFunc(pat.Get("/versions"), func(w http.ResponseWriter, rq *http.Request) {
 		dockerHubTags.Do(func(tags map[string]string) {
-			commons.WriteJSON(http.StatusOK, tags, w)
+			sendRS(http.StatusOK, tags, w, rq)
 		})
 	})
 
@@ -53,17 +53,34 @@ func main() {
 	}
 	mux.Handle(pat.Get("/info"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
 		commons.WriteJSON(http.StatusOK, buildInfo, w)
-
 	}))
 
 	mux.Use(commons.NoHandlerFound(func(w http.ResponseWriter, rq *http.Request) {
 		commons.WriteJSON(http.StatusNotFound, map[string]string{"error": "not found"}, w)
 	}))
 
+	//CORS, allow all domains
+	mux.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+			w.Header().Add("Access-Control-Allow-Origin", "*")
+			next.ServeHTTP(w, rq)
+		})
+
+	})
+
 	// listen and server on mentioned port
 	log.Printf("Starting on port %d", conf.Port)
 	http.ListenAndServe(":"+strconv.Itoa(conf.Port), mux)
 
+}
+
+func sendRS(status int, body interface{}, w http.ResponseWriter, rq *http.Request) error {
+	jsonp := rq.URL.Query()["jsonp"]
+	if nil != jsonp && len(jsonp) >= 1 {
+		return commons.WriteJSONP(status, body, jsonp[0], w)
+	} else {
+		return commons.WriteJSON(status, body, w)
+	}
 }
 
 func loadConfig() *config {
