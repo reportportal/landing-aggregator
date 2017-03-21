@@ -78,9 +78,8 @@ func sendRS(status int, body interface{}, w http.ResponseWriter, rq *http.Reques
 	jsonp := rq.URL.Query()["jsonp"]
 	if nil != jsonp && len(jsonp) >= 1 {
 		return commons.WriteJSONP(status, body, jsonp[0], w)
-	} else {
-		return commons.WriteJSON(status, body, w)
 	}
+	return commons.WriteJSON(status, body, w)
 }
 
 func loadConfig() *config {
