@@ -1,14 +1,14 @@
 package main
 
 import (
+	"github.com/avarabyeu/goRP/commons"
 	"github.com/caarlos0/env"
+	"github.com/reportportal/landing-aggregator/info"
 	"goji.io"
 	"goji.io/pat"
 	"log"
 	"net/http"
 	"strconv"
-	"github.com/avarabyeu/goRP/commons"
-	"github.com/reportportal/landing-aggregator/info"
 )
 
 var (

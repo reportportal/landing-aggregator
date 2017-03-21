@@ -9,9 +9,9 @@ import (
 
 //TweetInfo represents short tweet version
 type TweetInfo struct {
-	Text      string        `json:"text"`
-	User      string        `json:"user"`
-	CreatedAt string        `json:"created_at"`
+	Text      string `json:"text"`
+	User      string `json:"user"`
+	CreatedAt string `json:"created_at"`
 }
 
 //BufferTwits creates new synchronized auto-updating buffer of twits searched by provided hashtag

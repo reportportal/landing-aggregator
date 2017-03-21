@@ -1,9 +1,9 @@
 package info
 
 import (
-	"testing"
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/stretchr/testify/assert"
+	"testing"
 	"time"
 )
 
