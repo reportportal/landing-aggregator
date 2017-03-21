@@ -3,10 +3,10 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "z7Xnmj1fW6n5c0vZqZ0uR+S/fqQ=",
+			"checksumSHA1": "fWHwsvgDuB814h7VE2Evm1sgg8o=",
 			"path": "github.com/avarabyeu/goRP/commons",
-			"revision": "8e54c245e84ee3710f98f1169c9f09e25b3dea6d",
-			"revisionTime": "2017-03-18T19:08:10Z"
+			"revision": "79b843c0d6d870d7f6e72e4bef22775503e89d54",
+			"revisionTime": "2017-03-21T19:09:40Z"
 		},
 		{
 			"checksumSHA1": "p+pmJFrrERVu0gaKveWNl0ygl+I=",
@@ -15,10 +15,10 @@
 			"revisionTime": "2017-02-03T21:17:07Z"
 		},
 		{
-			"checksumSHA1": "SPQcWDUN+wcTThipcR9EzX4t3E8=",
+			"checksumSHA1": "nA+gmB0uOk+I06FhtCMrWlhHp00=",
 			"path": "github.com/cenkalti/backoff",
-			"revision": "b02f2bbce11d7ea6b97f282ef1771b0fe2f65ef3",
-			"revisionTime": "2016-10-20T19:44:10Z"
+			"revision": "3db60c813733fce657c114634171689bbf1f8dee",
+			"revisionTime": "2017-02-01T15:12:07Z"
 		},
 		{
 			"checksumSHA1": "OFu4xJEIjiI8Suu+j/gabfp+y6Q=",
@@ -42,14 +42,14 @@
 		{
 			"checksumSHA1": "BsoROpVGqRTsVkKPperv5VDv+lE=",
 			"path": "github.com/dghubble/sling",
-			"revision": "eb56e89ac5088bebb12eef3cb4b293300f43608b",
-			"revisionTime": "2016-12-18T11:07:05Z"
+			"revision": "91b015f8c5e231605ed75a74130ca0fa48b28cb1",
+			"revisionTime": "2017-02-19T19:46:32Z"
 		},
 		{
-			"checksumSHA1": "yyAzHoiVLu+xywYI2BDyRq6sOqE=",
+			"checksumSHA1": "p3IB18uJRs4dL2K5yx24MrLYE9A=",
 			"path": "github.com/google/go-querystring/query",
-			"revision": "9235644dd9e52eeae6fa48efd539fdc351a0af53",
-			"revisionTime": "2016-03-11T01:20:12Z"
+			"revision": "53e6ce116135b80d037921a7fdd5138cf32d7a8a",
+			"revisionTime": "2017-01-11T10:11:55Z"
 		},
 		{
 			"checksumSHA1": "zKKp5SZ3d3ycKe4EKMNT0BqAWBw=",
