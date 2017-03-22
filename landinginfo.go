@@ -36,8 +36,10 @@ func main() {
 		tweets := []*info.TweetInfo{}
 		twitsBuffer.Do(func(tweet interface{}) {
 			tweets = append(tweets, tweet.(*info.TweetInfo))
-			sendRS(http.StatusOK, tweets, w, rq)
 		})
+		if err := sendRS(http.StatusOK, tweets, w, rq); nil != err {
+			log.Println(err.Error())
+		}
 	})
 
 	mux.HandleFunc(pat.Get("/versions"), func(w http.ResponseWriter, rq *http.Request) {
