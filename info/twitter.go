@@ -9,11 +9,11 @@ import (
 
 //TweetInfo represents short tweet version
 type TweetInfo struct {
-	Id               int64 `json:"id"`
-	Text             string `json:"text"`
-	User             string `json:"user"`
-	CreatedAt        string `json:"created_at"`
-	Entities         *twitter.Entities `json:"entities,omitempty"`
+	Id               int64                   `json:"id"`
+	Text             string                  `json:"text"`
+	User             string                  `json:"user"`
+	CreatedAt        string                  `json:"created_at"`
+	Entities         *twitter.Entities       `json:"entities,omitempty"`
 	ExtendedEntities *twitter.ExtendedEntity `json:"extended_entities,omitempty"`
 }
 
