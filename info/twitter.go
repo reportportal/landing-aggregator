@@ -9,9 +9,12 @@ import (
 
 //TweetInfo represents short tweet version
 type TweetInfo struct {
-	Text      string `json:"text"`
-	User      string `json:"user"`
-	CreatedAt string `json:"created_at"`
+	Id               int64 `json:"id"`
+	Text             string `json:"text"`
+	User             string `json:"user"`
+	CreatedAt        string `json:"created_at"`
+	Entities         *twitter.Entities `json:"entities,omitempty"`
+	ExtendedEntities *twitter.ExtendedEntity `json:"extended_entities,omitempty"`
 }
 
 //BufferTwits creates new synchronized auto-updating buffer of twits searched by provided hashtag
@@ -32,7 +35,7 @@ func BufferTwits(consumerKey string,
 	searchTweetParams := &twitter.SearchTweetParams{
 		Query:           searchTag,
 		Count:           bufSize,
-		IncludeEntities: twitter.Bool(false),
+		IncludeEntities: twitter.Bool(true),
 	}
 
 	// initially fill the buffer with existing tweets
@@ -68,7 +71,10 @@ func BufferTwits(consumerKey string,
 //toTweetInfo Build short tweet object
 func toTweetInfo(tweet *twitter.Tweet) *TweetInfo {
 	return &TweetInfo{
-		Text:      tweet.Text,
-		CreatedAt: tweet.CreatedAt,
-		User:      tweet.User.Name}
+		Id:               tweet.ID,
+		Text:             tweet.Text,
+		CreatedAt:        tweet.CreatedAt,
+		User:             tweet.User.Name,
+		Entities:         tweet.Entities,
+		ExtendedEntities: tweet.ExtendedEntities}
 }

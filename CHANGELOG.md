@@ -17,3 +17,11 @@
 ### Bugfixes
 
 * build script: Release to DockerHUB prior to making git tag
+
+## v1.5
+##### Released: 31 March 2017
+
+### New Features
+
+* 'INCLUDE_BETA' env variable to configre whether BETA versions should be included in the list 
+* Twitter data now contains entities and extended_entities

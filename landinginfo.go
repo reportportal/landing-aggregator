@@ -27,7 +27,7 @@ func main() {
 	conf := loadConfig()
 	twitsBuffer := info.BufferTwits(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.HashTag, conf.BufferSize)
 
-	dockerHubTags := info.NewDockerHubTags()
+	dockerHubTags := info.NewDockerHubTags(conf.IncludeBeta)
 
 	mux := goji.NewMux()
 
@@ -94,13 +94,12 @@ func loadConfig() *config {
 }
 
 type config struct {
-	Port int `env:"PORT" envDefault:"8080"`
-
-	ConsumerKey    string `env:"CONSUMER,required"`
-	ConsumerSecret string `env:"CONSUMER_SECRET,required"`
-	Token          string `env:"TOKEN,required"`
-	TokenSecret    string `env:"TOKEN_SECRET,required"`
-
-	BufferSize int    `env:"BUFFER_SIZE" envDefault:"10"`
-	HashTag    string `env:"HASHTAG" envDefault:"reportportal_io"`
+	Port                int `env:"PORT" envDefault:"8080"`
+	ConsumerKey         string `env:"CONSUMER,required"`
+	ConsumerSecret      string `env:"CONSUMER_SECRET,required"`
+	Token               string `env:"TOKEN,required"`
+	TokenSecret         string `env:"TOKEN_SECRET,required"`
+	BufferSize          int    `env:"BUFFER_SIZE" envDefault:"10"`
+	HashTag             string `env:"HASHTAG" envDefault:"reportportal_io"`
+	IncludeBeta bool `env:"INCLUDE_BETA" envDefault:"false"`
 }

@@ -18,19 +18,20 @@ const (
 
 //DHubTags is a structure for retrieving DockerHub tags
 type DHubTags struct {
-	repoLatest map[string]string
-	mu         *sync.RWMutex
-	client     *sling.Sling
+	repoLatest  map[string]string
+	includeBeta bool
+	mu          *sync.RWMutex
+	client      *sling.Sling
 }
 
 //NewDockerHubTags creates new struct with default values
-func NewDockerHubTags() *DHubTags {
+func NewDockerHubTags(includeBeta bool) *DHubTags {
 	versions := &DHubTags{
 		mu: &sync.RWMutex{},
 		client: sling.New().Base(dockerHubBase).Client(&http.Client{
 			Timeout: time.Second * 10,
 		}),
-	}
+		includeBeta: includeBeta}
 
 	//schedules updates of latest versions
 	duration := time.Hour
@@ -93,7 +94,7 @@ func (v *DHubTags) load() {
 		for _, tag := range tags {
 			name := tag["name"]
 			//not a latest (we need explicit version), not a beta
-			if "" != name && "latest" != name && !strings.Contains(strings.ToLower(name), "beta") {
+			if "" != name && "latest" != name && (v.includeBeta || !strings.Contains(strings.ToLower(name), "beta")) {
 				versions = append(versions, name)
 			}
 		}
