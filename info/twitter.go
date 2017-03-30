@@ -9,7 +9,7 @@ import (
 
 //TweetInfo represents short tweet version
 type TweetInfo struct {
-	Id               int64                   `json:"id"`
+	ID               int64                   `json:"id"`
 	Text             string                  `json:"text"`
 	User             string                  `json:"user"`
 	CreatedAt        string                  `json:"created_at"`
@@ -71,7 +71,7 @@ func BufferTwits(consumerKey string,
 //toTweetInfo Build short tweet object
 func toTweetInfo(tweet *twitter.Tweet) *TweetInfo {
 	return &TweetInfo{
-		Id:               tweet.ID,
+		ID:               tweet.ID,
 		Text:             tweet.Text,
 		CreatedAt:        tweet.CreatedAt,
 		User:             tweet.User.Name,
