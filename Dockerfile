@@ -9,4 +9,5 @@ ADD ./bin/rpLandingInfo /
 ENV PORT=8080
 
 EXPOSE 8080
+EXPOSE 6060
 ENTRYPOINT ["/rpLandingInfo"]

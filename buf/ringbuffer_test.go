@@ -42,6 +42,21 @@ func TestRing(t *testing.T) {
 
 }
 
+func TestRingBufferr(t *testing.T) {
+	buf := New(100)
+	sync := sync.WaitGroup{}
+	sync.Add(100)
+
+	for n := 0; n < 100; n++ {
+		go func() {
+			buf.Add(strconv.Itoa(rand.Int()))
+			sync.Done()
+		}()
+
+	}
+	sync.Wait()
+}
+
 func BenchmarkRingBufferr_10000(b *testing.B) {
 	buf := New(100)
 	s1 := sync.WaitGroup{}

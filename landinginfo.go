@@ -6,6 +6,8 @@ import (
 	"github.com/reportportal/landing-aggregator/info"
 	"goji.io"
 	"goji.io/pat"
+	_ "net/http/pprof"
+
 	"log"
 	"net/http"
 	"strconv"
@@ -24,6 +26,9 @@ var (
 )
 
 func main() {
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 	conf := loadConfig()
 	twitsBuffer := info.BufferTwits(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.HashTag, conf.BufferSize)
 
