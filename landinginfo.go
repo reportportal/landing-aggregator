@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/avarabyeu/goRP/commons"
+	"github.com/reportportal/commons-go/commons"
 	"github.com/caarlos0/env"
 	"github.com/reportportal/landing-aggregator/info"
 	"goji.io"
