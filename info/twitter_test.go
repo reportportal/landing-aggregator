@@ -8,9 +8,9 @@ import (
 )
 
 func TestToTweetInfo(t *testing.T) {
-	now := time.Now().String()
+	now := time.Now().Round(time.Second)
 	tweet := twitter.Tweet{Text: "hello world", User: &twitter.User{
-		Name: "John"}, CreatedAt: now}
+		Name: "John"}, CreatedAt: now.Format(time.RubyDate)}
 
 	tweetInfo := toTweetInfo(&tweet)
 
