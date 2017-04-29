@@ -13,8 +13,8 @@ import (
 	"time"
 )
 
-//GitHubTags is a structure for retrieving DockerHub tags
-type GitHubTags struct {
+//GitHubVersions is a structure for retrieving DockerHub tags
+type GitHubVersions struct {
 	repoLatest  map[string]string
 	includeBeta bool
 	mu          *sync.RWMutex
@@ -22,15 +22,15 @@ type GitHubTags struct {
 	ctx         context.Context
 }
 
-//NewGitHubTags creates new struct with default values
-func NewGitHubTags(includeBeta bool) *GitHubTags {
+//NewGitHubVersions creates new struct with default values
+func NewGitHubVersions(ghToken string, includeBeta bool) *GitHubVersions {
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: "e27ff5b9926e7a5abaa17410bd4fbebac26fb4d6"},
+		&oauth2.Token{AccessToken: ghToken},
 	)
 	tc := oauth2.NewClient(ctx, ts)
 
-	versions := &GitHubTags{
+	versions := &GitHubVersions{
 		mu:          &sync.RWMutex{},
 		client:      github.NewClient(tc),
 		includeBeta: includeBeta,
@@ -51,7 +51,7 @@ func NewGitHubTags(includeBeta bool) *GitHubTags {
 	return versions
 }
 
-func (v *GitHubTags) load() {
+func (v *GitHubVersions) load() {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 
@@ -91,7 +91,7 @@ func (v *GitHubTags) load() {
 }
 
 //Do executes provided callback on latest versions/tags map
-func (v *GitHubTags) Do(f func(map[string]string)) {
+func (v *GitHubVersions) Do(f func(map[string]string)) {
 	v.mu.RLock()
 	defer v.mu.RUnlock()
 	f(v.repoLatest)

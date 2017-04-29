@@ -33,7 +33,7 @@ func main() {
 	conf := loadConfig()
 	twitsBuffer := info.BufferTwits(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.HashTag, conf.BufferSize)
 
-	dockerHubTags := info.NewGitHubTags(conf.IncludeBeta)
+	dockerHubTags := info.NewGitHubVersions(conf.GitHubToken, conf.IncludeBeta)
 
 	mux := goji.NewMux()
 
@@ -111,4 +111,5 @@ type config struct {
 	BufferSize     int    `env:"BUFFER_SIZE" envDefault:"10"`
 	HashTag        string `env:"HASHTAG" envDefault:"reportportal_io"`
 	IncludeBeta    bool   `env:"INCLUDE_BETA" envDefault:"false"`
+	GitHubToken    string `env:"GITHUB_TOKEN" envDefault:"false"`
 }
