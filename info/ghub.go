@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-//DHubTags is a structure for retrieving DockerHub tags
+//GitHubTags is a structure for retrieving DockerHub tags
 type GitHubTags struct {
 	repoLatest  map[string]string
 	includeBeta bool
