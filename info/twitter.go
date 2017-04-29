@@ -5,6 +5,8 @@ import (
 	"github.com/dghubble/oauth1"
 	"github.com/reportportal/landing-aggregator/buf"
 	"log"
+	"strings"
+	"time"
 )
 
 //TweetInfo represents short tweet version
@@ -12,7 +14,7 @@ type TweetInfo struct {
 	ID               int64                   `json:"id"`
 	Text             string                  `json:"text"`
 	User             string                  `json:"user"`
-	CreatedAt        string                  `json:"created_at"`
+	CreatedAt        time.Time               `json:"created_at"`
 	Entities         *twitter.Entities       `json:"entities,omitempty"`
 	ExtendedEntities *twitter.ExtendedEntity `json:"extended_entities,omitempty"`
 }
@@ -31,29 +33,18 @@ func BufferTwits(consumerKey string,
 
 	buffer := buf.New(bufSize)
 
-	// search for existing tweets
-	searchTweetParams := &twitter.SearchTweetParams{
-		Query:           searchTag,
-		Count:           bufSize,
-		IncludeEntities: twitter.Bool(true),
-	}
-
 	// initially fill the buffer with existing tweets
 	// useful for situation when there are rare updates
-	search, _, err := client.Search.Tweets(searchTweetParams)
+	tweets, streamFilter, err := searchTweets(searchTag, bufSize, client)
 	if nil != err {
 		log.Printf("Cannot load tweets: %s", err.Error())
 	}
-	for _, tweet := range search.Statuses {
+	for _, tweet := range tweets {
 		buffer.Add(toTweetInfo(&tweet))
 	}
 
 	go func() {
-		params := &twitter.StreamFilterParams{
-			Track:         []string{searchTag},
-			StallWarnings: twitter.Bool(true),
-		}
-		stream, err := client.Streams.Filter(params)
+		stream, err := client.Streams.Filter(streamFilter)
 		if nil != err {
 			log.Printf("Cannot load tweets stream: %s", err.Error())
 		}
@@ -61,6 +52,7 @@ func BufferTwits(consumerKey string,
 		for message := range stream.Messages {
 			tweet, ok := message.(*twitter.Tweet)
 			if ok {
+				log.Printf("receive %s", tweet.Text)
 				buffer.Add(toTweetInfo(tweet))
 			}
 		}
@@ -70,11 +62,61 @@ func BufferTwits(consumerKey string,
 
 //toTweetInfo Build short tweet object
 func toTweetInfo(tweet *twitter.Tweet) *TweetInfo {
+	log.Println(tweet.CreatedAt)
+	t, err := time.Parse(time.RubyDate, tweet.CreatedAt)
+	if err != nil { // Always check errors even if they should not happen.
+		panic(err)
+	}
+
 	return &TweetInfo{
 		ID:               tweet.ID,
 		Text:             tweet.Text,
-		CreatedAt:        tweet.CreatedAt,
+		CreatedAt:        t,
 		User:             tweet.User.Name,
 		Entities:         tweet.Entities,
 		ExtendedEntities: tweet.ExtendedEntities}
+}
+
+func searchTweets(term string, count int, c *twitter.Client) ([]twitter.Tweet, *twitter.StreamFilterParams, error) {
+	params := &twitter.StreamFilterParams{
+		StallWarnings: twitter.Bool(true),
+	}
+
+	if strings.HasPrefix(term, "@") {
+
+		u, _, err := c.Users.Show(&twitter.UserShowParams{
+			ScreenName: strings.TrimPrefix(term, "@"),
+		})
+		if nil != err {
+			return nil, nil, err
+		}
+
+		params.Follow = []string{u.IDStr}
+		searchTweetParams := &twitter.UserTimelineParams{
+			UserID:          u.ID,
+			Count:           count,
+			IncludeRetweets: twitter.Bool(true),
+		}
+
+		search, _, err := c.Timelines.UserTimeline(searchTweetParams)
+		return search, params, err
+	} else {
+		params.Track = []string{term}
+		// search for existing tweets
+		searchTweetParams := &twitter.SearchTweetParams{
+			Query:           term,
+			Count:           count,
+			IncludeEntities: twitter.Bool(true),
+		}
+
+		// initially fill the buffer with existing tweets
+		// useful for situation when there are rare updates
+		search, _, err := c.Search.Tweets(searchTweetParams)
+		if nil != err {
+			return search.Statuses, params, err
+		} else {
+			return nil, params, err
+		}
+
+	}
 }

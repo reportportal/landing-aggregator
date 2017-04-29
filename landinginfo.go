@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/reportportal/commons-go/commons"
 	"github.com/caarlos0/env"
+	"github.com/reportportal/commons-go/commons"
 	"github.com/reportportal/landing-aggregator/info"
 	"goji.io"
 	"goji.io/pat"
@@ -10,6 +10,7 @@ import (
 
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
 )
 
@@ -32,7 +33,7 @@ func main() {
 	conf := loadConfig()
 	twitsBuffer := info.BufferTwits(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.HashTag, conf.BufferSize)
 
-	dockerHubTags := info.NewDockerHubTags(conf.IncludeBeta)
+	dockerHubTags := info.NewGitHubTags(conf.IncludeBeta)
 
 	mux := goji.NewMux()
 
@@ -41,6 +42,9 @@ func main() {
 		tweets := []*info.TweetInfo{}
 		twitsBuffer.Do(func(tweet interface{}) {
 			tweets = append(tweets, tweet.(*info.TweetInfo))
+		})
+		sort.Slice(tweets, func(i, j int) bool {
+			return tweets[i].CreatedAt.After(tweets[j].CreatedAt)
 		})
 		if err := sendRS(http.StatusOK, tweets, w, rq); nil != err {
 			log.Println(err.Error())
