@@ -1,16 +1,16 @@
 package info
 
 import (
-	"sync"
-	"github.com/dghubble/sling"
-	"time"
-	"golang.org/x/oauth2"
 	"context"
+	"github.com/dghubble/sling"
 	"github.com/google/go-github/github"
-	"strings"
-	"log"
 	"github.com/hashicorp/go-version"
+	"golang.org/x/oauth2"
+	"log"
 	"sort"
+	"strings"
+	"sync"
+	"time"
 )
 
 //DHubTags is a structure for retrieving DockerHub tags
