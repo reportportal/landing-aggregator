@@ -119,6 +119,18 @@
 			"revisionTime": "2017-04-23T14:02:46Z"
 		},
 		{
+			"checksumSHA1": "SjCoL7KD7qBmgSuqGTCAuUhigDk=",
+			"path": "golang.org/x/oauth2",
+			"revision": "7fdf09982454086d5570c7db3e11f360194830ca",
+			"revisionTime": "2017-03-21T01:28:43Z"
+		},
+		{
+			"checksumSHA1": "BAkyxbaxkrZbzGtfG5iX8v6ypIo=",
+			"path": "golang.org/x/oauth2/internal",
+			"revision": "7fdf09982454086d5570c7db3e11f360194830ca",
+			"revisionTime": "2017-03-21T01:28:43Z"
+		},
+		{
 			"checksumSHA1": "WPEbk80NB3Esdh4Yk0PXr2K7xVU=",
 			"path": "google.golang.org/appengine",
 			"revision": "170382fa85b10b94728989dfcf6cc818b335c952",
