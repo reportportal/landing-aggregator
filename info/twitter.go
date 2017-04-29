@@ -100,23 +100,21 @@ func searchTweets(term string, count int, c *twitter.Client) ([]twitter.Tweet, *
 
 		search, _, err := c.Timelines.UserTimeline(searchTweetParams)
 		return search, params, err
-	} else {
-		params.Track = []string{term}
-		// search for existing tweets
-		searchTweetParams := &twitter.SearchTweetParams{
-			Query:           term,
-			Count:           count,
-			IncludeEntities: twitter.Bool(true),
-		}
-
-		// initially fill the buffer with existing tweets
-		// useful for situation when there are rare updates
-		search, _, err := c.Search.Tweets(searchTweetParams)
-		if nil != err {
-			return search.Statuses, params, err
-		} else {
-			return nil, params, err
-		}
-
 	}
+	params.Track = []string{term}
+	// search for existing tweets
+	searchTweetParams := &twitter.SearchTweetParams{
+		Query:           term,
+		Count:           count,
+		IncludeEntities: twitter.Bool(true),
+	}
+
+	// initially fill the buffer with existing tweets
+	// useful for situation when there are rare updates
+	search, _, err := c.Search.Tweets(searchTweetParams)
+	if nil == err {
+		return nil, params, err
+	}
+	return search.Statuses, params, err
+
 }
