@@ -22,7 +22,7 @@ type GitHubTags struct {
 	ctx         context.Context
 }
 
-//NewDockerHubTags creates new struct with default values
+//NewGitHubTags creates new struct with default values
 func NewGitHubTags(includeBeta bool) *GitHubTags {
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
