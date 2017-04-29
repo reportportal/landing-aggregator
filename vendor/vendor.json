@@ -3,18 +3,6 @@
 	"ignore": "test",
 	"package": [
 		{
-			"path": "appengine",
-			"revision": ""
-		},
-		{
-			"path": "appengine_internal",
-			"revision": ""
-		},
-		{
-			"path": "appengine_internal/base",
-			"revision": ""
-		},
-		{
 			"checksumSHA1": "p+pmJFrrERVu0gaKveWNl0ygl+I=",
 			"path": "github.com/caarlos0/env",
 			"revision": "9474f19b515f52326c7d197d2d097caa7fc7485e",
@@ -68,6 +56,12 @@
 			"path": "github.com/google/go-querystring/query",
 			"revision": "53e6ce116135b80d037921a7fdd5138cf32d7a8a",
 			"revisionTime": "2017-01-11T10:11:55Z"
+		},
+		{
+			"checksumSHA1": "tUGxc7rfX0cmhOOUDhMuAZ9rWsA=",
+			"path": "github.com/hashicorp/go-version",
+			"revision": "03c5bf6be031b6dd45afec16b1cf94fc8938bc77",
+			"revisionTime": "2017-02-02T08:07:59Z"
 		},
 		{
 			"checksumSHA1": "zKKp5SZ3d3ycKe4EKMNT0BqAWBw=",
