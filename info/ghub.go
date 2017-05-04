@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-const rpOrg = "reportportal"
+const rpOrg string = "reportportal"
 
 //GitHubVersions is a structure for retrieving DockerHub tags
 type GitHubVersions struct {
@@ -68,7 +68,8 @@ func (v *GitHubVersions) load() {
 	}
 	for _, repo := range repos {
 		var tagsRs []*github.RepositoryTag
-		_, err := sling.New().Get(repo.GetTagsURL()).ReceiveSuccess(&tagsRs)
+		rq, _ := sling.New().Get(repo.GetTagsURL()).Request()
+		_, err := v.client.Do(v.ctx, rq, &tagsRs)
 		if nil != err {
 			log.Println(err)
 			return
