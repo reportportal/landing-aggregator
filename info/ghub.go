@@ -11,7 +11,10 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"fmt"
 )
+
+const rpOrg = "reportportal"
 
 //GitHubVersions is a structure for retrieving DockerHub tags
 type GitHubVersions struct {
@@ -58,21 +61,19 @@ func (v *GitHubVersions) load() {
 	versionMap := map[string]string{}
 
 	opt := &github.RepositoryListByOrgOptions{Type: "all"}
-	repos, _, err := v.client.Repositories.ListByOrg(v.ctx, "reportportal", opt)
+	repos, _, err := v.client.Repositories.ListByOrg(v.ctx, rpOrg, opt)
 	if nil != err {
 		log.Println(err)
 		return
 	}
 	for _, repo := range repos {
 		var tagsRs []*github.RepositoryTag
-		rq, _ := sling.New().Get(repo.GetTagsURL()).Request()
-		_, err := v.client.Do(v.ctx, rq, &tagsRs)
+		_, err := sling.New().Get(repo.GetTagsURL()).ReceiveSuccess(&tagsRs)
 		if nil != err {
 			log.Println(err)
 			return
 		}
 		versions := version.Collection([]*version.Version{})
-
 		for _, tag := range tagsRs {
 			name := tag.GetName()
 
@@ -85,7 +86,7 @@ func (v *GitHubVersions) load() {
 			}
 		}
 		sort.Sort(versions)
-		versionMap[repo.GetName()] = versions[len(versions)-1].String()
+		versionMap[fmt.Sprintf("%s/%s", rpOrg,repo.GetName())] = versions[len(versions)-1].String()
 	}
 	v.repoLatest = versionMap
 }
