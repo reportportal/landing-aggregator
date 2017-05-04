@@ -86,7 +86,9 @@ func (v *GitHubVersions) load() {
 			}
 		}
 		sort.Sort(versions)
-		versionMap[fmt.Sprintf("%s/%s", rpOrg, repo.GetName())] = versions[len(versions)-1].String()
+		if len(versions) > 0 {
+			versionMap[fmt.Sprintf("%s/%s", rpOrg, repo.GetName())] = versions[len(versions)-1].String()
+		}
 	}
 	v.repoLatest = versionMap
 }
