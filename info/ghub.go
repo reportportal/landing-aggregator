@@ -2,6 +2,7 @@ package info
 
 import (
 	"context"
+	"fmt"
 	"github.com/dghubble/sling"
 	"github.com/google/go-github/github"
 	"github.com/hashicorp/go-version"
@@ -11,7 +12,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"fmt"
 )
 
 const rpOrg = "reportportal"
@@ -86,7 +86,7 @@ func (v *GitHubVersions) load() {
 			}
 		}
 		sort.Sort(versions)
-		versionMap[fmt.Sprintf("%s/%s", rpOrg,repo.GetName())] = versions[len(versions)-1].String()
+		versionMap[fmt.Sprintf("%s/%s", rpOrg, repo.GetName())] = versions[len(versions)-1].String()
 	}
 	v.repoLatest = versionMap
 }
