@@ -96,8 +96,7 @@ func searchTweets(term string, count int, c *twitter.Client) ([]twitter.Tweet, *
 			UserID:          u.ID,
 			Count:           count,
 			IncludeRetweets: twitter.Bool(false),
-			ExcludeReplies: twitter.Bool(false),
-
+			ExcludeReplies:  twitter.Bool(false),
 		}
 
 		search, _, err := c.Timelines.UserTimeline(searchTweetParams)
