@@ -51,8 +51,8 @@ func BufferTwits(consumerKey string,
 
 		for message := range stream.Messages {
 			tweet, ok := message.(*twitter.Tweet)
-			if ok {
-				log.Printf("receive %s", tweet.Text)
+			//avoid retweets
+			if ok && nil == tweet.RetweetedStatus {
 				buffer.Add(toTweetInfo(tweet))
 			}
 		}
@@ -62,7 +62,6 @@ func BufferTwits(consumerKey string,
 
 //toTweetInfo Build short tweet object
 func toTweetInfo(tweet *twitter.Tweet) *TweetInfo {
-	log.Println(tweet.CreatedAt)
 	t, err := time.Parse(time.RubyDate, tweet.CreatedAt)
 	if err != nil { // Always check errors even if they should not happen.
 		panic(err)
