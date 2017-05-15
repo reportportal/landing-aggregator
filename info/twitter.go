@@ -35,7 +35,7 @@ func BufferTwits(consumerKey string,
 
 	// initially fill the buffer with existing tweets
 	// useful for situation when there are rare updates
-	tweets, streamFilter, err := searchTweets(searchTag, bufSize, client)
+	tweets, stream, err := searchTweets(searchTag, bufSize, client)
 	if nil != err {
 		log.Printf("Cannot load tweets: %s", err.Error())
 	}
@@ -44,11 +44,6 @@ func BufferTwits(consumerKey string,
 	}
 
 	go func() {
-		stream, err := client.Streams.Filter(streamFilter)
-		if nil != err {
-			log.Printf("Cannot load tweets stream: %s", err.Error())
-		}
-
 		for message := range stream.Messages {
 			tweet, ok := message.(*twitter.Tweet)
 			//avoid retweets
@@ -76,32 +71,46 @@ func toTweetInfo(tweet *twitter.Tweet) *TweetInfo {
 		ExtendedEntities: tweet.ExtendedEntities}
 }
 
-func searchTweets(term string, count int, c *twitter.Client) ([]twitter.Tweet, *twitter.StreamFilterParams, error) {
-	params := &twitter.StreamFilterParams{
-		StallWarnings: twitter.Bool(true),
-	}
+func searchTweets(term string, count int, c *twitter.Client) ([]twitter.Tweet, *twitter.Stream, error) {
 
+	//user timeline mode
 	if strings.HasPrefix(term, "@") {
-
 		u, _, err := c.Users.Show(&twitter.UserShowParams{
 			ScreenName: strings.TrimPrefix(term, "@"),
 		})
 		if nil != err {
-			return nil, nil, err
+			log.Fatalf("Cannot load user: %s", err.Error())
+
 		}
 
-		params.Follow = []string{u.IDStr}
 		searchTweetParams := &twitter.UserTimelineParams{
 			UserID:          u.ID,
-			Count:           count,
+			Count:           count + 1,
 			IncludeRetweets: twitter.Bool(false),
 			ExcludeReplies:  twitter.Bool(true),
 		}
 
 		search, _, err := c.Timelines.UserTimeline(searchTweetParams)
-		return search, params, err
+		if nil != err {
+			log.Fatalf("Cannot load user's tweets: %s", err.Error())
+		}
+
+		stream, err := c.Streams.User(&twitter.StreamUserParams{
+			StallWarnings: twitter.Bool(true),
+			With:          "user",
+		})
+		if nil != err {
+			log.Fatalf("Cannot load user's stream: %s", err.Error())
+		}
+
+		return search, stream, err
 	}
-	params.Track = []string{term}
+
+	// hashtag streaming mode
+	streamFilterParams := &twitter.StreamFilterParams{
+		StallWarnings: twitter.Bool(true),
+		Track:         []string{term},
+	}
 	// search for existing tweets
 	searchTweetParams := &twitter.SearchTweetParams{
 		Query:           term,
@@ -112,9 +121,15 @@ func searchTweets(term string, count int, c *twitter.Client) ([]twitter.Tweet, *
 	// initially fill the buffer with existing tweets
 	// useful for situation when there are rare updates
 	search, _, err := c.Search.Tweets(searchTweetParams)
-	if nil == err {
-		return nil, params, err
+	if nil != err {
+		log.Fatalf("Cannot load tweets: %s", err.Error())
 	}
-	return search.Statuses, params, err
+
+	stream, err := c.Streams.Filter(streamFilterParams)
+	if nil != err {
+		log.Fatalf("Cannot load tweets stream: %s", err.Error())
+	}
+
+	return search.Statuses, stream, err
 
 }
