@@ -25,3 +25,10 @@
 
 * 'INCLUDE_BETA' env variable to configre whether BETA versions should be included in the list 
 * Twitter data now contains entities and extended_entities
+
+## v1.18
+##### Released: 17 May 2017
+
+### New Features
+
+*  Replace streaming with long-polling for 'follow' mode

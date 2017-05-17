@@ -30,13 +30,13 @@ func main() {
 	go func() {
 		log.Println(http.ListenAndServe(":6060", nil))
 	}()
+
 	conf := loadConfig()
-	twitsBuffer := info.BufferTwits(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.HashTag, conf.BufferSize)
+	twitsBuffer := info.BufferTwits(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.SearchTerm, conf.BufferSize)
 
 	dockerHubTags := info.NewGitHubVersions(conf.GitHubToken, conf.IncludeBeta)
 
 	mux := goji.NewMux()
-
 	mux.HandleFunc(pat.Get("/twitter"), func(w http.ResponseWriter, rq *http.Request) {
 
 		tweets := []*info.TweetInfo{}
@@ -104,12 +104,12 @@ func loadConfig() *config {
 
 type config struct {
 	Port           int    `env:"PORT" envDefault:"8080"`
-	ConsumerKey    string `env:"CONSUMER,required"`
-	ConsumerSecret string `env:"CONSUMER_SECRET,required"`
-	Token          string `env:"TOKEN,required"`
-	TokenSecret    string `env:"TOKEN_SECRET,required"`
-	BufferSize     int    `env:"BUFFER_SIZE" envDefault:"10"`
-	HashTag        string `env:"HASHTAG" envDefault:"reportportal_io"`
-	IncludeBeta    bool   `env:"INCLUDE_BETA" envDefault:"false"`
+	ConsumerKey    string `env:"TWITTER_CONSUMER,required"`
+	ConsumerSecret string `env:"TWITTER_CONSUMER_SECRET,required"`
+	Token          string `env:"TWITTER_TOKEN,required"`
+	TokenSecret    string `env:"TWITTER_TOKEN_SECRET,required"`
+	BufferSize     int    `env:"TWITTER_BUFFER_SIZE" envDefault:"10"`
+	SearchTerm     string `env:"TWITTER_SEARCH_TERM" envDefault:"@reportportal_io"`
+	IncludeBeta    bool   `env:"GITHUB_INCLUDE_BETA" envDefault:"false"`
 	GitHubToken    string `env:"GITHUB_TOKEN" envDefault:"false"`
 }
