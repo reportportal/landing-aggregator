@@ -45,19 +45,10 @@ func bufferTweets(term string, count int, c *twitter.Client) (*buf.RingBuffer, e
 
 	//'follow' mode
 	if strings.HasPrefix(term, "@") {
-
-		//retrieve user to be followed
-		u, _, err := c.Users.Show(&twitter.UserShowParams{
-			ScreenName: strings.TrimPrefix(term, "@"),
-		})
-		if nil != err {
-			return nil, err
-		}
-
 		//periodically load tweets
 		go func() {
 			searchTweetParams := &twitter.UserTimelineParams{
-				UserID: u.ID,
+				ScreenName: strings.TrimPrefix(term, "@"),
 				//do not specify count since in this case retweets are included into the RS
 				//Count:           count,
 				IncludeRetweets: twitter.Bool(false),
@@ -131,8 +122,9 @@ func loadTweets(c *twitter.Client, searchTweetParams *twitter.UserTimelineParams
 	if nil != err {
 		log.Printf("Cannot load tweets: %s", err.Error())
 	}
-	for _, tweet := range tweets {
-		buffer.Add(toTweetInfo(&tweet))
+	//iterate in reverse order because tweets are sorted by date ASC
+	for i := len(tweets)-1; i >= 0; i-- {
+		buffer.Add(toTweetInfo(&tweets[i]))
 	}
 }
 

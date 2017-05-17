@@ -40,3 +40,10 @@
 
 *  Do not add count to the requests into 'follow' mode since twitter includes retweets in this case.
  See [the docs](https://dev.twitter.com/rest/reference/get/statuses/user_timeline)
+ 
+## v1.20
+##### Released: 17 May 2017
+
+### Bugfixes
+
+*  Traverse result in reverse order to make newest tweets at the bottom of the buffer 
