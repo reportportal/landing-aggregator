@@ -32,8 +32,6 @@ func BufferTwits(consumerKey string,
 	httpClient := config.Client(oauth1.NoContext, token)
 	client := twitter.NewClient(httpClient)
 
-	// initially fill the buffer with existing tweets
-	// useful for situation when there are rare updates
 	buffer, err := bufferTweets(searchTag, bufSize, client)
 	if nil != err {
 		log.Fatalf("Cannot load tweets: %s", err.Error())
@@ -45,7 +43,10 @@ func BufferTwits(consumerKey string,
 func bufferTweets(term string, count int, c *twitter.Client) (*buf.RingBuffer, error) {
 	buffer := buf.New(count)
 
+	//'follow' mode
 	if strings.HasPrefix(term, "@") {
+
+		//retrieve user to be followed
 		u, _, err := c.Users.Show(&twitter.UserShowParams{
 			ScreenName: strings.TrimPrefix(term, "@"),
 		})
@@ -64,6 +65,9 @@ func bufferTweets(term string, count int, c *twitter.Client) (*buf.RingBuffer, e
 
 			//schedules updates of latest versions
 			commons.Schedule(time.Minute*1, true, func() {
+
+				//if buffer contains tweets already
+				//ask twitter to return values starting from the last one
 				last := buffer.Last()
 				if nil != last {
 					searchTweetParams.SinceID = last.(*TweetInfo).ID
@@ -75,7 +79,8 @@ func bufferTweets(term string, count int, c *twitter.Client) (*buf.RingBuffer, e
 
 	}
 
-	//hashtag/streaming mode
+	//'hashtag/streaming' mode
+
 	// search for existing tweets to initially fill the buffer
 	rs, _, err := c.Search.Tweets(&twitter.SearchTweetParams{
 		Query:           term,
@@ -86,7 +91,7 @@ func bufferTweets(term string, count int, c *twitter.Client) (*buf.RingBuffer, e
 		return nil, err
 	}
 
-	// initially fill the buffer with existing tweets
+	// fill the buffer with initial set of tweets
 	// useful for situation when there are rare updates
 	for _, tweet := range rs.Statuses {
 		buffer.Add(toTweetInfo(&tweet))
@@ -114,7 +119,7 @@ func bufferTweets(term string, count int, c *twitter.Client) (*buf.RingBuffer, e
 func streamTweets(c *twitter.Client, filter *twitter.StreamFilterParams) chan interface{} {
 	stream, err := c.Streams.Filter(filter)
 	if nil != err {
-		panic(err)
+		log.Fatalf("Streaming error: %s", err.Error())
 	}
 	return stream.Messages
 }
