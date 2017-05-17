@@ -32,7 +32,7 @@ func main() {
 	}()
 
 	conf := loadConfig()
-	twitsBuffer := info.BufferTwits(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.SearchTerm, conf.BufferSize)
+	twitsBuffer := info.BufferTweets(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.SearchTerm, conf.BufferSize)
 
 	dockerHubTags := info.NewGitHubVersions(conf.GitHubToken, conf.IncludeBeta)
 

@@ -47,3 +47,17 @@
 ### Bugfixes
 
 *  Traverse result in reverse order to make newest tweets at the bottom of the buffer 
+
+## v1.21
+##### Released: 17 May 2017
+
+### New Features
+
+*  Enable extended tweet mode
+ 
+## v1.22
+##### Released: 18 May 2017
+
+### Bugixes
+
+*  Fix presence of replies in 'follow' user mode 

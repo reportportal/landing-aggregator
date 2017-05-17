@@ -20,8 +20,8 @@ type TweetInfo struct {
 	ExtendedEntities *twitter.ExtendedEntity `json:"extended_entities,omitempty"`
 }
 
-//BufferTwits creates new synchronized auto-updating buffer of twits searched by provided hashtag
-func BufferTwits(consumerKey string,
+//BufferTweets creates new synchronized auto-updating buffer of twits searched by provided hashtag
+func BufferTweets(consumerKey string,
 	consumerSecret string,
 	tokenKey string,
 	tokenSecret string, searchTag string, bufSize int) *buf.RingBuffer {
@@ -32,7 +32,7 @@ func BufferTwits(consumerKey string,
 	httpClient := config.Client(oauth1.NoContext, token)
 	client := twitter.NewClient(httpClient)
 
-	buffer, err := bufferTweets(searchTag, bufSize, client)
+	buffer, err := initBuffer(searchTag, bufSize, client)
 	if nil != err {
 		log.Fatalf("Cannot load tweets: %s", err.Error())
 	}
@@ -40,7 +40,7 @@ func BufferTwits(consumerKey string,
 	return buffer
 }
 
-func bufferTweets(term string, count int, c *twitter.Client) (*buf.RingBuffer, error) {
+func initBuffer(term string, count int, c *twitter.Client) (*buf.RingBuffer, error) {
 	buffer := buf.New(count)
 
 	//'follow' mode
@@ -53,6 +53,7 @@ func bufferTweets(term string, count int, c *twitter.Client) (*buf.RingBuffer, e
 				//Count:           count,
 				IncludeRetweets: twitter.Bool(false),
 				ExcludeReplies:  twitter.Bool(true),
+				TweetMode:       "extended",
 			}
 
 			//schedules updates of latest versions
@@ -68,7 +69,7 @@ func bufferTweets(term string, count int, c *twitter.Client) (*buf.RingBuffer, e
 			})
 
 		}()
-
+		return buffer, nil
 	}
 
 	//'hashtag/streaming' mode
@@ -123,7 +124,7 @@ func loadTweets(c *twitter.Client, searchTweetParams *twitter.UserTimelineParams
 		log.Printf("Cannot load tweets: %s", err.Error())
 	}
 	//iterate in reverse order because tweets are sorted by date ASC
-	for i := len(tweets)-1; i >= 0; i-- {
+	for i := len(tweets) - 1; i >= 0; i-- {
 		buffer.Add(toTweetInfo(&tweets[i]))
 	}
 }
@@ -134,10 +135,16 @@ func toTweetInfo(tweet *twitter.Tweet) *TweetInfo {
 	if err != nil {
 		panic(err)
 	}
+	var text string
+	if "" != tweet.FullText {
+		text = tweet.FullText
+	} else {
+		text = tweet.Text
+	}
 
 	return &TweetInfo{
 		ID:               tweet.ID,
-		Text:             tweet.Text,
+		Text:             text,
 		CreatedAt:        t,
 		User:             tweet.User.Name,
 		Entities:         tweet.Entities,
