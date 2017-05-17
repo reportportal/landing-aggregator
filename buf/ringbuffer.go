@@ -27,6 +27,13 @@ func (buf *RingBuffer) Add(v interface{}) {
 	buf.r = buf.r.Next()
 }
 
+//Last returned last item added to the ring
+func (buf *RingBuffer) Last() interface{} {
+	buf.m.Lock()
+	defer buf.m.Unlock()
+	return buf.r.Prev().Value
+}
+
 //Do executes provided callback on all non-nil items of a ring
 func (buf *RingBuffer) Do(f func(interface{})) {
 	buf.m.RLock()

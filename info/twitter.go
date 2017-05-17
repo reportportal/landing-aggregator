@@ -3,6 +3,7 @@ package info
 import (
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
+	"github.com/reportportal/commons-go/commons"
 	"github.com/reportportal/landing-aggregator/buf"
 	"log"
 	"strings"
@@ -33,7 +34,7 @@ func BufferTwits(consumerKey string,
 
 	// initially fill the buffer with existing tweets
 	// useful for situation when there are rare updates
-	buffer, err := searchTweets(searchTag, bufSize, client)
+	buffer, err := bufferTweets(searchTag, bufSize, client)
 	if nil != err {
 		log.Fatalf("Cannot load tweets: %s", err.Error())
 	}
@@ -41,68 +42,69 @@ func BufferTwits(consumerKey string,
 	return buffer
 }
 
-func searchTweets(term string, count int, c *twitter.Client) (*buf.RingBuffer, error) {
+func bufferTweets(term string, count int, c *twitter.Client) (*buf.RingBuffer, error) {
 	buffer := buf.New(count)
-	var tweets []twitter.Tweet
 
-	streamFilterParam := &twitter.StreamFilterParams{
-		StallWarnings: twitter.Bool(true),
+	if strings.HasPrefix(term, "@") {
+		u, _, err := c.Users.Show(&twitter.UserShowParams{
+			ScreenName: strings.TrimPrefix(term, "@"),
+		})
+		if nil != err {
+			return nil, err
+		}
+
+		//periodically load tweets
+		go func() {
+			searchTweetParams := &twitter.UserTimelineParams{
+				UserID:          u.ID,
+				Count:           count,
+				IncludeRetweets: twitter.Bool(false),
+				ExcludeReplies:  twitter.Bool(true),
+			}
+
+			//schedules updates of latest versions
+			commons.Schedule(time.Minute*1, true, func() {
+				last := buffer.Last()
+				if nil != last {
+					searchTweetParams.SinceID = last.(*TweetInfo).ID
+				}
+				loadTweets(c, searchTweetParams, buffer)
+			})
+
+		}()
+
 	}
 
-	followMode := strings.HasPrefix(term, "@")
-	if followMode {
-		term = strings.TrimPrefix(term, "@")
-		u, _, err := c.Users.Show(&twitter.UserShowParams{
-			ScreenName: term,
-		})
-		if nil != err {
-			return nil, err
-		}
-
-		streamFilterParam.Follow = []string{u.IDStr}
-
-		rs, _, err := c.Timelines.UserTimeline(&twitter.UserTimelineParams{
-			UserID:          u.ID,
-			Count:           count + 1,
-			IncludeRetweets: twitter.Bool(false),
-			ExcludeReplies:  twitter.Bool(true),
-		})
-		if nil != err {
-			return nil, err
-		}
-		tweets = rs
-
-	} else {
-		streamFilterParam.Track = []string{term}
-
-		// search for existing tweets
-		rs, _, err := c.Search.Tweets(&twitter.SearchTweetParams{
-			Query:           term,
-			Count:           count,
-			IncludeEntities: twitter.Bool(true),
-		})
-		if nil != err {
-			return nil, err
-		}
-
-		tweets = rs.Statuses
+	//hashtag/streaming mode
+	// search for existing tweets to initially fill the buffer
+	rs, _, err := c.Search.Tweets(&twitter.SearchTweetParams{
+		Query:           term,
+		Count:           count,
+		IncludeEntities: twitter.Bool(true),
+	})
+	if nil != err {
+		return nil, err
 	}
 
 	// initially fill the buffer with existing tweets
 	// useful for situation when there are rare updates
-	for _, tweet := range tweets {
+	for _, tweet := range rs.Statuses {
 		buffer.Add(toTweetInfo(&tweet))
 	}
 
 	//setup streaming for updating buffer
 	go func() {
+		streamFilterParam := &twitter.StreamFilterParams{
+			StallWarnings: twitter.Bool(true),
+			Track:         []string{term},
+		}
+
 		for message := range streamTweets(c, streamFilterParam) {
 			tweet, ok := message.(*twitter.Tweet)
-
-			// do not allow retweets in follow user mode
-			if ok && !(followMode && term != tweet.User.Name) {
+			if ok {
 				buffer.Add(toTweetInfo(tweet))
 			}
+
 		}
 	}()
 	return buffer, nil
@@ -115,6 +117,17 @@ func streamTweets(c *twitter.Client, filter *twitter.StreamFilterParams) chan in
 		panic(err)
 	}
 	return stream.Messages
+}
+
+//loadTweets loads found tweets into buffer
+func loadTweets(c *twitter.Client, searchTweetParams *twitter.UserTimelineParams, buffer *buf.RingBuffer) {
+	tweets, _, err := c.Timelines.UserTimeline(searchTweetParams)
+	if nil != err {
+		log.Printf("Cannot load tweets: %s", err.Error())
+	}
+	for _, tweet := range tweets {
+		buffer.Add(toTweetInfo(&tweet))
+	}
 }
 
 //toTweetInfo Build short tweet object
