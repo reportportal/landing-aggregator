@@ -57,8 +57,9 @@ func bufferTweets(term string, count int, c *twitter.Client) (*buf.RingBuffer, e
 		//periodically load tweets
 		go func() {
 			searchTweetParams := &twitter.UserTimelineParams{
-				UserID:          u.ID,
-				Count:           count,
+				UserID: u.ID,
+				//do not specify count since in this case retweets are included into the RS
+				//Count:           count,
 				IncludeRetweets: twitter.Bool(false),
 				ExcludeReplies:  twitter.Bool(true),
 			}
