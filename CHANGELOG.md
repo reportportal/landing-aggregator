@@ -32,3 +32,11 @@
 ### New Features
 
 *  Replace streaming with long-polling for 'follow' mode
+
+## v1.19
+##### Released: 17 May 2017
+
+### Bugfixes
+
+*  Do not add count to the requests into 'follow' mode since twitter includes retweets in this case.
+ See [the docs](https://dev.twitter.com/rest/reference/get/statuses/user_timeline)
