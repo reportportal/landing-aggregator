@@ -1,4 +1,4 @@
-FROM scratch
+FROM alpine
 
 MAINTAINER Andrei Varabyeu <andrei_varabyeu@epam.com>
 
@@ -10,4 +10,4 @@ ENV PORT=8080
 
 EXPOSE 8080
 EXPOSE 6060
-ENTRYPOINT ["/rpLandingInfo"]
+CMD ["/rpLandingInfo"]
