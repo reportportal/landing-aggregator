@@ -8,9 +8,10 @@ import (
 	"goji.io/pat"
 	_ "net/http/pprof"
 
-	"log"
 	"net/http"
-	"sort"
+	log "github.com/sirupsen/logrus"
+
+	"os"
 	"strconv"
 )
 
@@ -26,9 +27,23 @@ var (
 	Version string
 )
 
+func init() {
+	// Log as JSON instead of the default ASCII formatter.
+	log.SetFormatter(&log.TextFormatter{ForceColors: true})
+
+	// Output to stdout instead of the default stderr
+	// Can be any io.Writer, see below for File example
+	log.SetOutput(os.Stdout)
+
+	// Only log the warning severity or above.
+	log.SetLevel(log.InfoLevel)
+
+}
+
 func main() {
 	go func() {
-		log.Println(http.ListenAndServe(":6060", nil))
+		log.Info("hello world")
+		log.Info(http.ListenAndServe(":6060", nil))
 	}()
 
 	conf := loadConfig()
@@ -38,23 +53,15 @@ func main() {
 
 	mux := goji.NewMux()
 	mux.HandleFunc(pat.Get("/twitter"), func(w http.ResponseWriter, rq *http.Request) {
-
-		tweets := []*info.TweetInfo{}
-		twitsBuffer.Do(func(tweet interface{}) {
-			tweets = append(tweets, tweet.(*info.TweetInfo))
-		})
-		sort.Slice(tweets, func(i, j int) bool {
-			return tweets[i].CreatedAt.After(tweets[j].CreatedAt)
-		})
-		if err := sendRS(http.StatusOK, tweets, w, rq); nil != err {
-			log.Println(err.Error())
+		if err := sendRS(http.StatusOK, info.GetTweets(twitsBuffer), w, rq); nil != err {
+			log.Error(err)
 		}
 	})
 
 	mux.HandleFunc(pat.Get("/versions"), func(w http.ResponseWriter, rq *http.Request) {
-		dockerHubTags.Do(func(tags map[string]string) {
-			sendRS(http.StatusOK, tags, w, rq)
-		})
+		if err := sendRS(http.StatusOK, dockerHubTags.GetLatestTags(), w, rq); nil != err {
+			log.Error(err)
+		}
 	})
 
 	buildInfo := &commons.BuildInfo{
@@ -64,6 +71,15 @@ func main() {
 	}
 	mux.Handle(pat.Get("/info"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
 		commons.WriteJSON(http.StatusOK, buildInfo, w)
+	}))
+
+	//aggregate everything into on rs
+	mux.Handle(pat.Get("/"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+		rs := map[string]interface{}{}
+		rs["latest_versions"] = dockerHubTags.GetLatestTags()
+		rs["tweets"] = info.GetTweets(twitsBuffer)
+		rs["build"] = buildInfo
+		commons.WriteJSON(http.StatusOK, rs, w)
 	}))
 
 	mux.Use(commons.NoHandlerFound(func(w http.ResponseWriter, rq *http.Request) {
@@ -80,7 +96,7 @@ func main() {
 	})
 
 	// listen and server on mentioned port
-	log.Printf("Starting on port %d", conf.Port)
+	log.Infof("Starting on port %d", conf.Port)
 	http.ListenAndServe(":"+strconv.Itoa(conf.Port), mux)
 
 }

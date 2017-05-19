@@ -5,9 +5,10 @@ import (
 	"github.com/dghubble/oauth1"
 	"github.com/reportportal/commons-go/commons"
 	"github.com/reportportal/landing-aggregator/buf"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"strings"
 	"time"
+	"sort"
 )
 
 //TweetInfo represents short tweet version
@@ -45,7 +46,7 @@ func initBuffer(term string, count int, c *twitter.Client) (*buf.RingBuffer, err
 
 	//'follow' mode
 	if strings.HasPrefix(term, "@") {
-		//periodically load tweets
+		//periodically loadStats tweets
 		go func() {
 			searchTweetParams := &twitter.UserTimelineParams{
 				ScreenName: strings.TrimPrefix(term, "@"),
@@ -121,7 +122,7 @@ func streamTweets(c *twitter.Client, filter *twitter.StreamFilterParams) chan in
 func loadTweets(c *twitter.Client, searchTweetParams *twitter.UserTimelineParams, buffer *buf.RingBuffer) {
 	tweets, _, err := c.Timelines.UserTimeline(searchTweetParams)
 	if nil != err {
-		log.Printf("Cannot load tweets: %s", err.Error())
+		log.Errorf("Cannot load tweets: %s", err.Error())
 	}
 	//iterate in reverse order because tweets are sorted by date ASC
 	for i := len(tweets) - 1; i >= 0; i-- {
@@ -149,4 +150,15 @@ func toTweetInfo(tweet *twitter.Tweet) *TweetInfo {
 		User:             tweet.User.Name,
 		Entities:         tweet.Entities,
 		ExtendedEntities: tweet.ExtendedEntities}
+}
+
+func GetTweets(buf *buf.RingBuffer) []*TweetInfo {
+	tweets := []*TweetInfo{}
+	buf.Do(func(tweet interface{}) {
+		tweets = append(tweets, tweet.(*TweetInfo))
+	})
+	sort.Slice(tweets, func(i, j int) bool {
+		return tweets[i].CreatedAt.After(tweets[j].CreatedAt)
+	})
+	return tweets
 }
