@@ -6,9 +6,9 @@ import (
 	"github.com/reportportal/commons-go/commons"
 	"github.com/reportportal/landing-aggregator/buf"
 	log "github.com/sirupsen/logrus"
+	"sort"
 	"strings"
 	"time"
-	"sort"
 )
 
 //TweetInfo represents short tweet version

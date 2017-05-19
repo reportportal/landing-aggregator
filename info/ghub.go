@@ -6,13 +6,13 @@ import (
 	"github.com/dghubble/sling"
 	"github.com/google/go-github/github"
 	"github.com/hashicorp/go-version"
+	"github.com/reportportal/commons-go/commons"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"sort"
 	"strings"
 	"sync"
 	"time"
-	log "github.com/sirupsen/logrus"
-	"github.com/reportportal/commons-go/commons"
 )
 
 const rpOrg string = "reportportal"
@@ -54,7 +54,7 @@ func getRepos(c *github.Client) ([]*github.Repository, error) {
 	return repos, err
 }
 
-func getVersionsMap(c *github.Client, repos []*github.Repository, includeBeta bool) (map[string]string) {
+func getVersionsMap(c *github.Client, repos []*github.Repository, includeBeta bool) map[string]string {
 	versionMap := make(map[string]string, len(repos))
 
 	for _, repo := range repos {

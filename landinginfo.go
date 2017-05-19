@@ -8,8 +8,8 @@ import (
 	"goji.io/pat"
 	_ "net/http/pprof"
 
-	"net/http"
 	log "github.com/sirupsen/logrus"
+	"net/http"
 
 	"os"
 	"strconv"
