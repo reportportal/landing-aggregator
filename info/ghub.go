@@ -28,8 +28,8 @@ type GitHubStats struct {
 
 //Stars hold total count of stars and count of stars per repo
 type Stars struct {
-	Total int
-	Repos map[string]int
+	Total int            `json:"total"`
+	Repos map[string]int `json:"repos"`
 }
 
 //NewGitHubVersions creates new struct with default values
