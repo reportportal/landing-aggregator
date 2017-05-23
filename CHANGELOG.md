@@ -57,7 +57,10 @@
  
 ## v1.22
 ##### Released: 18 May 2017
-
 ### Bugixes
-
 *  Fix presence of replies in 'follow' user mode 
+
+## v1.24
+##### Released: 23 May 2017
+### New Features
+*  Cache stars count for each org repository
