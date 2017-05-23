@@ -152,6 +152,7 @@ func toTweetInfo(tweet *twitter.Tweet) *TweetInfo {
 		ExtendedEntities: tweet.ExtendedEntities}
 }
 
+//GetTweets buffered tweets sorted by date
 func GetTweets(buf *buf.RingBuffer) []*TweetInfo {
 	tweets := []*TweetInfo{}
 	buf.Do(func(tweet interface{}) {

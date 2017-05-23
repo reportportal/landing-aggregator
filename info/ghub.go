@@ -19,8 +19,17 @@ const rpOrg string = "reportportal"
 
 //GitHubStats is a structure for retrieving DockerHub tags
 type GitHubStats struct {
-	latestTags map[string]string
-	tmu        *sync.RWMutex
+	rmu   *sync.RWMutex
+	repos []*github.Repository
+
+	latestTags  map[string]string
+	commitStats map[string][]*github.WeeklyCommitActivity
+}
+
+//Stars hold total count of stars and count of stars per repo
+type Stars struct {
+	Total int
+	Repos map[string]int
 }
 
 //NewGitHubVersions creates new struct with default values
@@ -31,28 +40,51 @@ func NewGitHubVersions(ghToken string, includeBeta bool) *GitHubStats {
 
 	ghClient := github.NewClient(oauth2.NewClient(context.Background(), ts))
 	stats := &GitHubStats{
-		tmu: &sync.RWMutex{},
+		rmu: &sync.RWMutex{},
 	}
+
+	//schedules updates of repos
+	stats.loadRepos(ghClient)
+	commons.Schedule(time.Hour*4, false, func() {
+		stats.loadRepos(ghClient)
+	})
 
 	//schedules updates of latest stats
 	commons.Schedule(time.Hour, true, func() {
-		repos, err := getRepos(ghClient)
-		if nil != err {
-			return
-		}
-		stats.tmu.Lock()
-		defer stats.tmu.Unlock()
-		stats.latestTags = getVersionsMap(ghClient, repos, includeBeta)
+		stats.latestTags = getVersionsMap(ghClient, stats.getRepos(), includeBeta)
 	})
+
+	//schedules updates of commit stats
+	//commons.Schedule(time.Hour*24, true, func() {
+	//	stats.commitStats = getCommitsStats(ghClient, stats.getRepos())
+	//})
 
 	return stats
 }
 
-func getRepos(c *github.Client) ([]*github.Repository, error) {
-	opt := &github.RepositoryListByOrgOptions{Type: "all"}
-	repos, _, err := c.Repositories.ListByOrg(context.Background(), rpOrg, opt)
-	return repos, err
-}
+//func getCommitsStats(c *github.Client, repos []*github.Repository) map[string][]*github.WeeklyCommitActivity {
+//	repoCommits := make(map[string][]*github.WeeklyCommitActivity, len(repos))
+//
+//	for _, repo := range repos {
+//		commons.Retry(5, time.Second*10, func() error {
+//			stats, _, err := c.Repositories.ListCommitActivity(context.Background(), "reportportal", repo.GetName())
+//			if nil != err {
+//				log.Error(err)
+//				return err
+//			}
+//
+//			//log.Info("OKOKOK")
+//			//for _, stat := range stats[len(stats)-12:] {
+//			//	log.Println(stat)
+//			//}
+//			repoCommits[repo.GetName()] = stats
+//			return nil
+//		})
+//
+//	}
+//
+//	return repoCommits
+//}
 
 func getVersionsMap(c *github.Client, repos []*github.Repository, includeBeta bool) map[string]string {
 	versionMap := make(map[string]string, len(repos))
@@ -88,12 +120,52 @@ func getVersionsMap(c *github.Client, repos []*github.Repository, includeBeta bo
 
 //GetLatestTags returns copy of latest versions/tags map
 func (s *GitHubStats) GetLatestTags() map[string]string {
-	s.tmu.RLock()
-	defer s.tmu.RUnlock()
 
 	tags := make(map[string]string, len(s.latestTags))
 	for k, v := range s.latestTags {
 		tags[k] = v
 	}
 	return tags
+}
+
+//GetCommitStats returns copy of latest versions/tags map
+func (s *GitHubStats) GetCommitStats() map[string][]*github.WeeklyCommitActivity {
+	stats := make(map[string][]*github.WeeklyCommitActivity, len(s.latestTags))
+	for k, v := range s.commitStats {
+		stats[k] = v
+	}
+	return stats
+}
+
+//GetStars returns count of stars for each repository and total count
+func (s *GitHubStats) GetStars() *Stars {
+	repoStars := make(map[string]int, len(s.repos))
+	total := 0
+	for _, repo := range s.getRepos() {
+		repoStars[repo.GetName()] = repo.GetStargazersCount()
+		total += repo.GetStargazersCount()
+	}
+	return &Stars{Total: total, Repos: repoStars}
+}
+
+//getRepos returns copy of cached Github Repos
+func (s *GitHubStats) getRepos() []*github.Repository {
+	s.rmu.RLock()
+	defer s.rmu.RUnlock()
+
+	repos := make([]*github.Repository, len(s.repos))
+	copy(repos, s.repos)
+	return repos
+}
+
+//loadRepos loads repositories from GitHUB
+func (s *GitHubStats) loadRepos(c *github.Client) {
+	opt := &github.RepositoryListByOrgOptions{Type: "all"}
+	repos, _, err := c.Repositories.ListByOrg(context.Background(), rpOrg, opt)
+	if nil == err {
+		s.rmu.Lock()
+		defer s.rmu.Unlock()
+		s.repos = repos
+
+	}
 }

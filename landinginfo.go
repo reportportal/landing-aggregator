@@ -49,7 +49,7 @@ func main() {
 	conf := loadConfig()
 	twitsBuffer := info.BufferTweets(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.SearchTerm, conf.BufferSize)
 
-	dockerHubTags := info.NewGitHubVersions(conf.GitHubToken, conf.IncludeBeta)
+	ghStats := info.NewGitHubVersions(conf.GitHubToken, conf.IncludeBeta)
 
 	mux := goji.NewMux()
 	mux.HandleFunc(pat.Get("/twitter"), func(w http.ResponseWriter, rq *http.Request) {
@@ -59,7 +59,7 @@ func main() {
 	})
 
 	mux.HandleFunc(pat.Get("/versions"), func(w http.ResponseWriter, rq *http.Request) {
-		if err := sendRS(http.StatusOK, dockerHubTags.GetLatestTags(), w, rq); nil != err {
+		if err := sendRS(http.StatusOK, ghStats.GetLatestTags(), w, rq); nil != err {
 			log.Error(err)
 		}
 	})
@@ -76,7 +76,8 @@ func main() {
 	//aggregate everything into on rs
 	mux.Handle(pat.Get("/"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
 		rs := map[string]interface{}{}
-		rs["latest_versions"] = dockerHubTags.GetLatestTags()
+		rs["latest_versions"] = ghStats.GetLatestTags()
+		rs["github_stars"] = ghStats.GetStars()
 		rs["tweets"] = info.GetTweets(twitsBuffer)
 		rs["build"] = buildInfo
 		commons.WriteJSON(http.StatusOK, rs, w)
