@@ -64,6 +64,10 @@ func main() {
 		}
 	})
 
+	mux.Handle(pat.Get("/github/stars"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+		commons.WriteJSON(http.StatusOK, ghStats.GetStars(), w)
+	}))
+
 	buildInfo := &commons.BuildInfo{
 		Version:   Version,
 		Branch:    Branch,
