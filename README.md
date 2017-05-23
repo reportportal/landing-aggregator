@@ -43,6 +43,9 @@ Uses long-pooling to keep buffer up to date.
 ```/versions```
 Returns latest versions of ReportPortal's Docker Images. Obtains this information from GitHUB API
 
+```/```
+Returns all the cached and aggregated data including tweets from Twitter and GitHub-related info
+
 ## Configuration
 Aggregator can be configured through env variables. The following configuration options are available:
 
