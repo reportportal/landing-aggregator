@@ -49,7 +49,7 @@ func main() {
 	conf := loadConfig()
 	twitsBuffer := info.BufferTweets(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.SearchTerm, conf.BufferSize)
 
-	ghStats := info.NewGitHubVersions(conf.GitHubToken, conf.IncludeBeta)
+	ghStats := info.NewGitHubAggregator(conf.GitHubToken, conf.IncludeBeta)
 
 	mux := goji.NewMux()
 	mux.HandleFunc(pat.Get("/twitter"), func(w http.ResponseWriter, rq *http.Request) {
@@ -84,6 +84,9 @@ func main() {
 		rs["github_stars"] = ghStats.GetStars()
 		rs["tweets"] = info.GetTweets(twitsBuffer)
 		rs["build"] = buildInfo
+
+		rs["contribution_stats"] = ghStats.GetContributionStats()
+
 		commons.WriteJSON(http.StatusOK, rs, w)
 	}))
 
