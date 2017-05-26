@@ -49,7 +49,7 @@ func main() {
 	conf := loadConfig()
 	twitsBuffer := info.BufferTweets(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.SearchTerm, conf.BufferSize)
 
-	ghStats := info.NewGitHubAggregator(conf.GitHubToken, conf.IncludeBeta)
+	ghAggr := info.NewGitHubAggregator(conf.GitHubToken, conf.IncludeBeta)
 
 	mux := goji.NewMux()
 	mux.HandleFunc(pat.Get("/twitter"), func(w http.ResponseWriter, rq *http.Request) {
@@ -59,13 +59,13 @@ func main() {
 	})
 
 	mux.HandleFunc(pat.Get("/versions"), func(w http.ResponseWriter, rq *http.Request) {
-		if err := sendRS(http.StatusOK, ghStats.GetLatestTags(), w, rq); nil != err {
+		if err := sendRS(http.StatusOK, ghAggr.GetLatestTags(), w, rq); nil != err {
 			log.Error(err)
 		}
 	})
 
 	mux.Handle(pat.Get("/github/stars"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
-		commons.WriteJSON(http.StatusOK, ghStats.GetStars(), w)
+		commons.WriteJSON(http.StatusOK, ghAggr.GetStars(), w)
 	}))
 
 	buildInfo := &commons.BuildInfo{
@@ -80,12 +80,16 @@ func main() {
 	//aggregate everything into on rs
 	mux.Handle(pat.Get("/"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
 		rs := map[string]interface{}{}
-		rs["latest_versions"] = ghStats.GetLatestTags()
-		rs["github_stars"] = ghStats.GetStars()
+		rs["latest_versions"] = ghAggr.GetLatestTags()
 		rs["tweets"] = info.GetTweets(twitsBuffer)
 		rs["build"] = buildInfo
 
-		rs["contribution_stats"] = ghStats.GetContributionStats()
+		ghStats := map[string]interface{}{
+			"stars":              ghAggr.GetStars(),
+			"contribution_stats": ghAggr.GetContributionStats(),
+			"issue_stats":        ghAggr.GetIssueStats(),
+		}
+		rs["github"] = ghStats
 
 		commons.WriteJSON(http.StatusOK, rs, w)
 	}))
