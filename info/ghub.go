@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -27,10 +28,15 @@ const (
 var ranges = []StatRange{week, month, threeMonth}
 
 const (
-	rpOrg                      string        = "reportportal"
+	rpOrg string = "reportportal"
+	//open/closed pr/issue
+	issueQueryTemplate string = "is:%s is:%s user:" + rpOrg
+
 	repoSyncPeriod             time.Duration = time.Hour * 4
 	versionsSyncPeriod         time.Duration = time.Hour
 	contributorStatsSyncPeriod time.Duration = time.Hour * 12
+	commitsStatsSyncPeriod     time.Duration = time.Hour * 6
+	issuesStatsSyncPeriod      time.Duration = time.Minute * 30
 	statsRetryPeriod           time.Duration = time.Second * 10
 	statsRetryAttempts         int           = 5
 )
@@ -39,14 +45,11 @@ const (
 type GitHubAggregator struct {
 	c *github.Client
 
-	rmu   *sync.RWMutex
-	repos []*github.Repository
-
-	ltmu       *sync.RWMutex
-	latestTags map[string]string
-
-	csmu              *sync.RWMutex
-	contributionStats *ContributionStats
+	repos              atomic.Value
+	latestTags         atomic.Value
+	commitStats        atomic.Value
+	uniqueContributors atomic.Value
+	issueStats         atomic.Value
 }
 
 //ContributionStats contains aggregated info related to contribution to a organization repositories
@@ -61,6 +64,14 @@ type Stars struct {
 	Repos map[string]int `json:"repos"`
 }
 
+//IssueStats hold issues stats
+type IssueStats struct {
+	OpenPRs      int `json:"open_pull_requests"`
+	OpenIssues   int `json:"open_issues"`
+	ClosedIssues int `json:"closed_issues"`
+	TotalIssues  int `json:"total_issues"`
+}
+
 //NewGitHubAggregator creates new struct with default values
 func NewGitHubAggregator(ghToken string, includeBeta bool) *GitHubAggregator {
 	ts := oauth2.StaticTokenSource(
@@ -69,10 +80,12 @@ func NewGitHubAggregator(ghToken string, includeBeta bool) *GitHubAggregator {
 
 	ghClient := github.NewClient(oauth2.NewClient(context.Background(), ts))
 	stats := &GitHubAggregator{
-		c:    ghClient,
-		rmu:  &sync.RWMutex{},
-		ltmu: &sync.RWMutex{},
-		csmu: &sync.RWMutex{},
+		c:                  ghClient,
+		latestTags:         atomic.Value{},
+		repos:              atomic.Value{},
+		commitStats:        atomic.Value{},
+		uniqueContributors: atomic.Value{},
+		issueStats:         atomic.Value{},
 	}
 
 	//schedules updates of repos
@@ -88,68 +101,104 @@ func NewGitHubAggregator(ghToken string, includeBeta bool) *GitHubAggregator {
 
 	//schedules updates of commit stats
 	commons.Schedule(contributorStatsSyncPeriod, true, func() {
-		stats.loadContributionStats()
+		stats.loadUniqueContributors()
+	})
+
+	//schedules updates of commit stats
+	commons.Schedule(commitsStatsSyncPeriod, true, func() {
+		stats.loadCommitStats()
+	})
+
+	//schedules updates of issue stats
+	commons.Schedule(issuesStatsSyncPeriod, true, func() {
+		stats.loadIssueStats()
 	})
 
 	return stats
 }
 
-func (s *GitHubAggregator) loadContributionStats() {
+func (s *GitHubAggregator) loadCommitStats() {
+	log.Debugf("Updating commit statistics...")
 
-	commitStats := make(map[StatRange]int, len(ranges))
-	uniqueContributors := make(map[StatRange]int, len(ranges))
+	commitStats := make(map[StatRange]int)
 
-	for _, repo := range s.getRepos() {
-		commons.Retry(statsRetryAttempts, statsRetryPeriod, func() error {
-			stats, _, err := s.c.Repositories.ListContributorsStats(context.Background(), rpOrg, repo.GetName())
+	mu := sync.Mutex{}
+	s.doWithRepos(func(repo *github.Repository) {
+		commons.Retry(5, time.Second*10, func() error {
+			stats, _, err := s.c.Repositories.ListCommitActivity(context.Background(), rpOrg, repo.GetName())
 			if nil != err {
 				log.Errorf("[%s] : %s", repo.GetName(), err.Error())
 				return err
 			}
 
+			for _, tr := range ranges {
+				count := 0
+				for _, stat := range stats[len(stats)-int(tr):] {
+					count += stat.GetTotal()
+				}
+				mu.Lock()
+				commitStats[tr] += count
+				mu.Unlock()
+			}
+			return nil
+		})
+	})
+
+	s.commitStats.Store(commitStats)
+}
+func (s *GitHubAggregator) loadUniqueContributors() {
+	log.Debugf("Updating unique contributors set...")
+
+	mu := sync.Mutex{}
+	uniqueContributors := make(map[StatRange]int, len(ranges))
+
+	s.doWithRepos(func(repo *github.Repository) {
+		commons.Retry(statsRetryAttempts, statsRetryPeriod, func() error {
+			contributors, _, err := s.c.Repositories.ListContributorsStats(context.Background(), rpOrg, repo.GetName())
+			if nil != err {
+				log.Debugf("[%s] : %s", repo.GetName(), err.Error())
+				return err
+			}
+
 			//summ statistics per range
 			for _, tr := range ranges {
-				rangeCount := 0
-
 				//collect data of each contributor
-				for _, contributorStats := range stats {
-					contributorRangeCount := 0
-					for _, weekStat := range contributorStats.Weeks[len(contributorStats.Weeks)-int(tr):] {
-						contributorRangeCount += weekStat.GetCommits()
+				for _, contributor := range contributors {
+					for _, weekStat := range contributor.Weeks[len(contributor.Weeks)-int(tr):] {
+						if weekStat.GetCommits() > 0 {
+							mu.Lock()
+							uniqueContributors[tr]++
+							mu.Unlock()
+							break
+						}
 					}
-					if contributorRangeCount > 0 {
-						uniqueContributors[tr] = uniqueContributors[tr] + 1
-					}
-					rangeCount += contributorRangeCount
-					log.Infof("%s for %d weeks: %d", contributorStats.Author.GetLogin(), tr, contributorRangeCount)
+
 				}
-				commitStats[tr] = commitStats[tr] + rangeCount
 			}
 
 			return nil
 		})
+	})
 
-	}
-
-	s.contributionStats = &ContributionStats{
-		Commits:      commitStats,
-		Contributors: uniqueContributors,
-	}
+	s.uniqueContributors.Store(uniqueContributors)
 
 }
 
+//loadVersionsMap loads the latest tags
 func (s *GitHubAggregator) loadVersionsMap(includeBeta bool) {
-	repos := s.getRepos()
-	versionMap := make(map[string]string, len(repos))
+	log.Debugf("Updating latest versions map...")
 
-	for _, repo := range repos {
+	mu := sync.Mutex{}
+	versionMap := make(map[string]string)
+
+	s.doWithRepos(func(repo *github.Repository) {
 		var tagsRs []*github.RepositoryTag
 		rq, _ := sling.New().Get(repo.GetTagsURL()).Request()
 
 		_, err := s.c.Do(context.Background(), rq, &tagsRs)
 		if nil != err {
 			log.Error(err)
-			continue
+			return
 		}
 		versions := version.Collection([]*version.Version{})
 		for _, tag := range tagsRs {
@@ -165,23 +214,53 @@ func (s *GitHubAggregator) loadVersionsMap(includeBeta bool) {
 		}
 		sort.Sort(versions)
 		if len(versions) > 0 {
+			mu.Lock()
 			versionMap[fmt.Sprintf("%s/%s", rpOrg, repo.GetName())] = versions[len(versions)-1].String()
+			mu.Unlock()
 		}
-	}
+	})
 
-	s.ltmu.Lock()
-	s.latestTags = versionMap
-	s.ltmu.Unlock()
+	s.latestTags.Store(versionMap)
 }
 
-//getRepos returns copy of cached Github Repos
-func (s *GitHubAggregator) getRepos() []*github.Repository {
-	s.rmu.RLock()
-	defer s.rmu.RUnlock()
+//loadIssueStats loads issue statistics
+func (s *GitHubAggregator) loadIssueStats() {
+	log.Debugf("Updating issue statistics...")
 
-	repos := make([]*github.Repository, len(s.repos))
-	copy(repos, s.repos)
-	return repos
+	prs, _, err := s.c.Search.Issues(context.Background(), fmt.Sprintf(issueQueryTemplate, "open", "pr"), &github.SearchOptions{ListOptions: github.ListOptions{PerPage: 1}})
+	if nil != err {
+		log.Errorf("Unable to find PRs count. %s", err.Error())
+	}
+
+	issues, _, err := s.c.Search.Issues(context.Background(), fmt.Sprintf(issueQueryTemplate, "open", "issue"), &github.SearchOptions{ListOptions: github.ListOptions{PerPage: 1}})
+	if nil != err {
+		log.Errorf("Unable to find PRs count. %s", err.Error())
+	}
+
+	closedIssues, _, err := s.c.Search.Issues(context.Background(), fmt.Sprintf(issueQueryTemplate, "closed", "issue"), &github.SearchOptions{ListOptions: github.ListOptions{PerPage: 1}})
+	if nil != err {
+		log.Errorf("Unable to find PRs count. %s", err.Error())
+	}
+
+	s.issueStats.Store(&IssueStats{
+		OpenPRs:      prs.GetTotal(),
+		OpenIssues:   issues.GetTotal(),
+		ClosedIssues: closedIssues.GetTotal(),
+		TotalIssues:  issues.GetTotal() + closedIssues.GetTotal()})
+}
+
+//doWithRepos performs some action under cached repos in parallel manner
+func (s *GitHubAggregator) doWithRepos(f func(repo *github.Repository)) {
+	repos := s.repos.Load().([]*github.Repository)
+	wg := sync.WaitGroup{}
+	wg.Add(len(repos))
+	for _, repo := range repos {
+		go func(repo *github.Repository) {
+			defer wg.Done()
+			f(repo)
+		}(repo)
+	}
+	wg.Wait()
 }
 
 //loadRepos loads repositories from GitHUB
@@ -189,25 +268,22 @@ func (s *GitHubAggregator) loadRepos() {
 	opt := &github.RepositoryListByOrgOptions{Type: "all"}
 	repos, _, err := s.c.Repositories.ListByOrg(context.Background(), rpOrg, opt)
 	if nil == err {
-		s.rmu.Lock()
-		defer s.rmu.Unlock()
-		s.repos = repos
-
+		s.repos.Store(repos)
 	}
 }
 
 //GetLatestTags returns copy of latest versions/tags map
 func (s *GitHubAggregator) GetLatestTags() map[string]string {
-	s.ltmu.RLock()
-	defer s.ltmu.RUnlock()
-	return s.latestTags
+	return s.latestTags.Load().(map[string]string)
 }
 
 //GetStars returns count of stars for each repository and total count
 func (s *GitHubAggregator) GetStars() *Stars {
-	repoStars := make(map[string]int, len(s.repos))
 	total := 0
-	for _, repo := range s.getRepos() {
+	repos := s.repos.Load().([]*github.Repository)
+
+	repoStars := make(map[string]int, len(repos))
+	for _, repo := range repos {
 		repoStars[repo.GetName()] = repo.GetStargazersCount()
 		total += repo.GetStargazersCount()
 	}
@@ -216,8 +292,10 @@ func (s *GitHubAggregator) GetStars() *Stars {
 
 //GetContributionStats returns aggregated contribution stats for organization repositories
 func (s *GitHubAggregator) GetContributionStats() *ContributionStats {
-	s.csmu.RLock()
-	defer s.csmu.RUnlock()
+	return &ContributionStats{Commits: s.commitStats.Load().(map[StatRange]int), Contributors: s.uniqueContributors.Load().(map[StatRange]int)}
+}
 
-	return s.contributionStats
+//GetIssueStats returns issues/PRs statistics
+func (s *GitHubAggregator) GetIssueStats() *IssueStats {
+	return s.issueStats.Load().(*IssueStats)
 }

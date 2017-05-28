@@ -29,73 +29,46 @@ var (
 
 func init() {
 	// Log as JSON instead of the default ASCII formatter.
-	log.SetFormatter(&log.TextFormatter{ForceColors: true})
+	log.SetFormatter(&log.TextFormatter{ForceColors: true, FullTimestamp: true, DisableTimestamp: false})
 
 	// Output to stdout instead of the default stderr
 	// Can be any io.Writer, see below for File example
 	log.SetOutput(os.Stdout)
 
 	// Only log the warning severity or above.
-	log.SetLevel(log.InfoLevel)
+	log.SetLevel(log.DebugLevel)
 
 }
 
 func main() {
+
+	//enable profiling
 	go func() {
 		log.Info("hello world")
 		log.Info(http.ListenAndServe(":6060", nil))
 	}()
 
+	//load app config
 	conf := loadConfig()
-	twitsBuffer := info.BufferTweets(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.SearchTerm, conf.BufferSize)
 
-	ghStats := info.NewGitHubAggregator(conf.GitHubToken, conf.IncludeBeta)
-
-	mux := goji.NewMux()
-	mux.HandleFunc(pat.Get("/twitter"), func(w http.ResponseWriter, rq *http.Request) {
-		if err := sendRS(http.StatusOK, info.GetTweets(twitsBuffer), w, rq); nil != err {
-			log.Error(err)
-		}
-	})
-
-	mux.HandleFunc(pat.Get("/versions"), func(w http.ResponseWriter, rq *http.Request) {
-		if err := sendRS(http.StatusOK, ghStats.GetLatestTags(), w, rq); nil != err {
-			log.Error(err)
-		}
-	})
-
-	mux.Handle(pat.Get("/github/stars"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
-		commons.WriteJSON(http.StatusOK, ghStats.GetStars(), w)
-	}))
-
+	//setup aggregators
 	buildInfo := &commons.BuildInfo{
 		Version:   Version,
 		Branch:    Branch,
 		BuildDate: BuildDate,
 	}
-	mux.Handle(pat.Get("/info"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
-		commons.WriteJSON(http.StatusOK, buildInfo, w)
-	}))
+	twitsBuffer := info.BufferTweets(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.SearchTerm, conf.BufferSize)
+	ghAggr := info.NewGitHubAggregator(conf.GitHubToken, conf.IncludeBeta)
 
-	//aggregate everything into on rs
-	mux.Handle(pat.Get("/"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
-		rs := map[string]interface{}{}
-		rs["latest_versions"] = ghStats.GetLatestTags()
-		rs["github_stars"] = ghStats.GetStars()
-		rs["tweets"] = info.GetTweets(twitsBuffer)
-		rs["build"] = buildInfo
+	router := goji.NewMux()
 
-		rs["contribution_stats"] = ghStats.GetContributionStats()
-
-		commons.WriteJSON(http.StatusOK, rs, w)
-	}))
-
-	mux.Use(commons.NoHandlerFound(func(w http.ResponseWriter, rq *http.Request) {
+	//404 - NOT Found middleware
+	router.Use(commons.NoHandlerFound(func(w http.ResponseWriter, rq *http.Request) {
 		commons.WriteJSON(http.StatusNotFound, map[string]string{"error": "not found"}, w)
 	}))
 
-	//CORS, allow all domains
-	mux.Use(func(next http.Handler) http.Handler {
+	//CORS middleware, allow all domains
+	router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
 			w.Header().Add("Access-Control-Allow-Origin", "*")
 			next.ServeHTTP(w, rq)
@@ -103,13 +76,60 @@ func main() {
 
 	})
 
+	//info endpoint
+	router.Handle(pat.Get("/info"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+		commons.WriteJSON(http.StatusOK, buildInfo, w)
+	}))
+
+	router.HandleFunc(pat.Get("/twitter"), func(w http.ResponseWriter, rq *http.Request) {
+		if err := jsonpRS(http.StatusOK, info.GetTweets(twitsBuffer), w, rq); nil != err {
+			log.Error(err)
+		}
+	})
+
+	router.HandleFunc(pat.Get("/versions"), func(w http.ResponseWriter, rq *http.Request) {
+		if err := jsonpRS(http.StatusOK, ghAggr.GetLatestTags(), w, rq); nil != err {
+			log.Error(err)
+		}
+	})
+
+	//GitHub-related routes
+	ghRouter := goji.SubMux()
+	router.Handle(pat.New("/github/*"), ghRouter)
+	ghRouter.Handle(pat.Get("/stars"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+		commons.WriteJSON(http.StatusOK, ghAggr.GetStars(), w)
+	}))
+	ghRouter.Handle(pat.Get("/contribution"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+		commons.WriteJSON(http.StatusOK, ghAggr.GetContributionStats(), w)
+	}))
+	ghRouter.Handle(pat.Get("/issues"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+		commons.WriteJSON(http.StatusOK, ghAggr.GetIssueStats(), w)
+	}))
+
+	//aggregate everything into on rs
+	router.Handle(pat.Get("/"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+		rs := map[string]interface{}{}
+		rs["latest_versions"] = ghAggr.GetLatestTags()
+		rs["tweets"] = info.GetTweets(twitsBuffer)
+		rs["build"] = buildInfo
+
+		ghStats := map[string]interface{}{
+			"stars":              ghAggr.GetStars(),
+			"contribution_stats": ghAggr.GetContributionStats(),
+			"issue_stats":        ghAggr.GetIssueStats(),
+		}
+		rs["github"] = ghStats
+
+		commons.WriteJSON(http.StatusOK, rs, w)
+	}))
+
 	// listen and server on mentioned port
 	log.Infof("Starting on port %d", conf.Port)
-	http.ListenAndServe(":"+strconv.Itoa(conf.Port), mux)
+	http.ListenAndServe(":"+strconv.Itoa(conf.Port), router)
 
 }
 
-func sendRS(status int, body interface{}, w http.ResponseWriter, rq *http.Request) error {
+func jsonpRS(status int, body interface{}, w http.ResponseWriter, rq *http.Request) error {
 	jsonp := rq.URL.Query()["jsonp"]
 	if nil != jsonp && len(jsonp) >= 1 {
 		return commons.WriteJSONP(status, body, jsonp[0], w)

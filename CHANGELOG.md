@@ -64,3 +64,9 @@
 ##### Released: 23 May 2017
 ### New Features
 *  Cache stars count for each org repository
+
+## v1.27
+##### Released: 29 May 2017
+### New Features
+* GitHub statistics aggregation
+* Composite root endpoint for all aggregated data
