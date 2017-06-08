@@ -225,6 +225,8 @@ func (s *GitHubAggregator) loadVersionsMap(includeBeta bool) {
 			mu.Lock()
 			versionMap[fmt.Sprintf("%s/%s", rpOrg, repo.GetName())] = versions[len(versions)-1].String()
 			mu.Unlock()
+		} else {
+			log.Debugf("Repo '%s' does not have valid version tags", repo.GetName())
 		}
 	})
 
@@ -276,6 +278,7 @@ func (s *GitHubAggregator) loadRepos() {
 	opt := &github.RepositoryListByOrgOptions{Type: "all", ListOptions: github.ListOptions{PerPage: 100} }
 	repos, _, err := s.c.Repositories.ListByOrg(context.Background(), rpOrg, opt)
 	if nil == err {
+		log.Infof("%d repositories found", len(repos))
 		s.repos.Store(repos)
 	}
 }
