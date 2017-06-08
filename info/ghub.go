@@ -275,13 +275,14 @@ func (s *GitHubAggregator) doWithRepos(f func(repo *github.Repository)) {
 
 //loadRepos loads repositories from GitHUB
 func (s *GitHubAggregator) loadRepos() {
-	opt := &github.RepositoryListByOrgOptions{Type: "all", ListOptions: github.ListOptions{PerPage: 50} }
+	opt := &github.RepositoryListByOrgOptions{Type: "all", ListOptions: github.ListOptions{PerPage: 50}}
 
 	// get all pages of results
 	var allRepos []*github.Repository
 	for {
 		repos, resp, err := s.c.Repositories.ListByOrg(context.Background(), rpOrg, opt)
 		if err != nil {
+			log.Errorf("Cannot get repositories list: ma%v", err)
 			continue
 		}
 		allRepos = append(allRepos, repos...)
