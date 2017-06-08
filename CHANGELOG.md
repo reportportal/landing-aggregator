@@ -70,3 +70,9 @@
 ### New Features
 * GitHub statistics aggregation
 * Composite root endpoint for all aggregated data
+
+
+## v1.28
+##### Released: 8 June 2017
+### Bugfixes
+* Only 30 first organization repositories were processed by aggregator
