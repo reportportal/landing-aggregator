@@ -164,7 +164,15 @@ func (s *GitHubAggregator) loadUniqueContributors() {
 			for _, tr := range ranges {
 				//collect data of each contributor
 				for _, contributor := range contributors {
-					for _, weekStat := range contributor.Weeks[len(contributor.Weeks)-int(tr):] {
+					var weeklyStats []github.WeeklyStats
+
+					if len(contributor.Weeks) > int(tr) {
+						weeklyStats = contributor.Weeks[len(contributor.Weeks)-int(tr):]
+					} else {
+						weeklyStats = contributor.Weeks
+					}
+
+					for _, weekStat := range weeklyStats {
 						if weekStat.GetCommits() > 0 {
 							mu.Lock()
 							uniqueContributors[tr]++
