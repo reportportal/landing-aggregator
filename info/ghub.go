@@ -265,7 +265,7 @@ func (s *GitHubAggregator) doWithRepos(f func(repo *github.Repository)) {
 
 //loadRepos loads repositories from GitHUB
 func (s *GitHubAggregator) loadRepos() {
-	opt := &github.RepositoryListByOrgOptions{Type: "all"}
+	opt := &github.RepositoryListByOrgOptions{Type: "all", ListOptions: github.ListOptions{PerPage: 100} }
 	repos, _, err := s.c.Repositories.ListByOrg(context.Background(), rpOrg, opt)
 	if nil == err {
 		s.repos.Store(repos)
