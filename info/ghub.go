@@ -275,12 +275,24 @@ func (s *GitHubAggregator) doWithRepos(f func(repo *github.Repository)) {
 
 //loadRepos loads repositories from GitHUB
 func (s *GitHubAggregator) loadRepos() {
-	opt := &github.RepositoryListByOrgOptions{Type: "all", ListOptions: github.ListOptions{PerPage: 100} }
-	repos, _, err := s.c.Repositories.ListByOrg(context.Background(), rpOrg, opt)
-	if nil == err {
-		log.Infof("%d repositories found", len(repos))
-		s.repos.Store(repos)
+	opt := &github.RepositoryListByOrgOptions{Type: "all", ListOptions: github.ListOptions{PerPage: 50} }
+
+	// get all pages of results
+	var allRepos []*github.Repository
+	for {
+		repos, resp, err := s.c.Repositories.ListByOrg(context.Background(), rpOrg, opt)
+		if err != nil {
+			continue
+		}
+		allRepos = append(allRepos, repos...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
 	}
+	log.Infof("%d repositories found", len(allRepos))
+	s.repos.Store(allRepos)
+
 }
 
 //GetLatestTags returns copy of latest versions/tags map
