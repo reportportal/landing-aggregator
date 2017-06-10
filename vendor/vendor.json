@@ -3,10 +3,10 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "p+pmJFrrERVu0gaKveWNl0ygl+I=",
+			"checksumSHA1": "grwuyFQtCIJITNFJH39YyV3JE8Y=",
 			"path": "github.com/caarlos0/env",
-			"revision": "9474f19b515f52326c7d197d2d097caa7fc7485e",
-			"revisionTime": "2017-02-03T21:17:07Z"
+			"revision": "96848814304d3273ac4cd0360f05e4a2d1259d7f",
+			"revisionTime": "2017-06-07T13:03:31Z"
 		},
 		{
 			"checksumSHA1": "NfQBkfSVHEmnR2OaORxdOXmhLcs=",
@@ -46,10 +46,10 @@
 			"revisionTime": "2016-11-17T03:31:26Z"
 		},
 		{
-			"checksumSHA1": "BaIusObwtOiLaYiST/RJlsu5beA=",
+			"checksumSHA1": "oraOJInQli5rlCvS7O5BGFqIvic=",
 			"path": "github.com/google/go-github/github",
-			"revision": "d683a1c6198d75c6be7a7ab5e2f9834cb6408834",
-			"revisionTime": "2017-03-21T16:33:37Z"
+			"revision": "7a51fb928f52a196d5f31daefb8a489453ef54ff",
+			"revisionTime": "2017-06-04T03:01:11Z"
 		},
 		{
 			"checksumSHA1": "p3IB18uJRs4dL2K5yx24MrLYE9A=",

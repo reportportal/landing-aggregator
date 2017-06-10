@@ -6,7 +6,6 @@ import (
 	"github.com/reportportal/landing-aggregator/info"
 	"goji.io"
 	"goji.io/pat"
-	_ "net/http/pprof"
 
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -41,12 +40,6 @@ func init() {
 }
 
 func main() {
-
-	//enable profiling
-	go func() {
-		log.Info("hello world")
-		log.Info(http.ListenAndServe(":6060", nil))
-	}()
 
 	//load app config
 	conf := loadConfig()

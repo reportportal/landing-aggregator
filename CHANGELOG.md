@@ -76,3 +76,8 @@
 ##### Released: 8 June 2017
 ### Bugfixes
 * Only 30 first organization repositories were processed by aggregator
+
+## v1.31
+##### Released: 10 June 2017
+### Bugfixes
+* Remove profiler
