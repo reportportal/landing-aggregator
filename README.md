@@ -6,6 +6,7 @@
 Micro-service which serves next:
 * cache tweets from https://twitter.com/ReportPortal_io
 * return latest version numbers for ReportPortal services
+* aggregates ReportPortal's GitHub statistics
 
 ## Build
 
@@ -45,6 +46,33 @@ Returns latest versions of ReportPortal's Docker Images. Obtains this informatio
 
 ```/```
 Returns all the cached and aggregated data including tweets from Twitter and GitHub-related info
+
+### Github aggregation details
+```github/contribution```
+Returns commits and unique contributors for the last weeks
+For example,
+```json
+{
+  "commits": {
+    "1": 0,
+    "4": 201,
+    "12": 1018
+  },
+  "unique_contributors": {
+    "1": 20,
+    "4": 52,
+    "12": 80
+  }
+}
+```
+means that there were no commits for the current week, 201 commits for the last 4 weeks, etc.
+
+
+```github/stars```
+Returns stars count for each repository and total count
+
+```/github/issues```
+Aggregates issue statistics from each organization repository
 
 ## Configuration
 Aggregator can be configured through env variables. The following configuration options are available:
