@@ -92,6 +92,6 @@ Aggregator can be configured through env variables. The following configuration 
 | GITHUB_TOKEN||false|GitHUB API Token| 
 
 ## Production deployment
-Several instances of app are supposed to be deployed to provide fault-tolerance to distribute load.
-There is Traefik which is reverse-proxy and load-balancer which does not require any service registry and allows zero-conf 
+Several instances of app should be deployed to provide fault-tolerance and distribute load.
+There is [Traefik](traefik.io) which is reverse-proxy and load-balancer which does not require any service registry and allows zero-conf 
 discovery via Docker API. Example can be found [here](docker-compose.yml)
