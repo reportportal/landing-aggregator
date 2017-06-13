@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/reportportal/landing-aggregator.svg?branch=master)](https://travis-ci.org/reportportal/landing-aggregator)
 [![Go Report Card](https://goreportcard.com/badge/github.com/reportportal/landing-aggregator)](https://goreportcard.com/report/github.com/reportportal/landing-aggregator)
+[![Docker Pulls](https://img.shields.io/docker/pulls/reportportal/landing-aggregator.svg?maxAge=159200)](https://hub.docker.com/r/reportportal/landing-aggregator/)
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/39ce87bf716162454c2e)
 
