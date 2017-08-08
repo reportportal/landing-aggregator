@@ -81,3 +81,8 @@
 ##### Released: 10 June 2017
 ### Bugfixes
 * Remove profiler
+
+## v1.32
+##### Released: 8 Aug 2017
+### Bugfixes
+* Add retweets to tweets cache
