@@ -22,8 +22,9 @@ help:
 
 
 vendor: ## Install govendor and sync Hugo's vendored dependencies
-	go get github.com/kardianos/govendor
-	govendor sync
+	$(GO) get -v github.com/Masterminds/glide
+	cd $(GOPATH)/src/github.com/Masterminds/glide && git checkout tags/v0.12.3 && go install && cd -
+	glide install
 
 get-build-deps: vendor # prepare stuff required for the build
 	$(GO) get $(BUILD_DEPS)
@@ -31,7 +32,7 @@ get-build-deps: vendor # prepare stuff required for the build
 
 # executes unit-tests
 test: vendor
-	govendor test +local
+	$(GO) test $(glide novendor)
 
 # executes bunch of checkstyle validators
 checkstyle: get-build-deps

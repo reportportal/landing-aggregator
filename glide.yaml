@@ -1,0 +1,30 @@
+package: github.com/reportportal/landing-aggregator
+import:
+- package: github.com/caarlos0/env
+  version: v3.0
+- package: github.com/dghubble/go-twitter
+  subpackages:
+  - twitter
+- package: github.com/dghubble/oauth1
+  version: v0.4.0
+- package: github.com/dghubble/sling
+  version: v1.1.0
+- package: github.com/google/go-github
+  subpackages:
+  - github
+- package: github.com/hashicorp/go-version
+- package: github.com/reportportal/commons-go
+  subpackages:
+  - commons
+- package: github.com/sirupsen/logrus
+  version: 1.0.2
+- package: goji.io
+  version: v2.0
+  subpackages:
+  - pat
+- package: golang.org/x/oauth2
+testImport:
+- package: github.com/stretchr/testify
+  version: v1.1.4
+  subpackages:
+  - assert

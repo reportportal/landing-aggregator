@@ -52,7 +52,7 @@ func initBuffer(term string, count int, c *twitter.Client) (*buf.RingBuffer, err
 				ScreenName: strings.TrimPrefix(term, "@"),
 				//do not specify count since in this case retweets are included into the RS
 				//Count:           count,
-				IncludeRetweets: twitter.Bool(false),
+				IncludeRetweets: twitter.Bool(true),
 				ExcludeReplies:  twitter.Bool(true),
 				TweetMode:       "extended",
 			}
