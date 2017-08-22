@@ -2,12 +2,14 @@ FROM alpine:3.5
 
 MAINTAINER Andrei Varabyeu <andrei_varabyeu@epam.com>
 
-ADD scripts/ca-certificates.crt /etc/ssl/certs/
+RUN apk --no-cache add ca-certificates
+
+RUN adduser -D rpuser
+USER rpuser
 
 ADD ./bin/rpLandingInfo /
 
 ENV PORT=8080
 
 EXPOSE 8080
-EXPOSE 6060
 CMD ["/rpLandingInfo"]
