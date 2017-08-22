@@ -86,3 +86,8 @@
 ##### Released: 8 Aug 2017
 ### Bugfixes
 * Add retweets to tweets cache
+
+## v1.34
+##### Released: 8 Aug 2017
+### Bugfixes
+* Improved dockerfile
