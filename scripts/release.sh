@@ -17,7 +17,7 @@ if [[ -z "$v" ]]; then
 fi
 
 echo "Building binary..."
-CGO_ENABLED=0 GOOS=linux go build -ldflags "-X main.Branch=${COMMIT_HASH} -X main.BuildDate=${BUILD_DATE} -X main.Version=${v}" -o bin/rpLandingInfo ./landinginfo.go
+CGO_ENABLED=0 GOOS=linux go build -ldflags "-X main.Branch=${COMMIT_HASH} -X main.BuildDate=${BUILD_DATE} -X main.Version=${v}" -o bin/landinginfo ./landinginfo.go
 
 #grep -q "$v" README.md || echo "README.md not updated"
 grep -q "$v" CHANGELOG.md || echo "CHANGELOG.md not updated"

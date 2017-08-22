@@ -44,11 +44,11 @@ fmt:
 
 # Builds the project for linux-based OS
 build: vendor
-	$(GO) build -o ${BINARY_DIR}/rplandinginfo ./landinginfo.go
+	$(GO) build -o ${BINARY_DIR}/landinginfo ./landinginfo.go
 
 # Builds the project for linux-based OS
 build_docker: vendor
-	CGO_ENABLED=0 GOOS=linux $(GO) build -o ${BINARY_DIR}/rplandinginfo ./landinginfo.go
+	CGO_ENABLED=0 GOOS=linux $(GO) build -o ${BINARY_DIR}/landinginfo ./landinginfo.go
 
 # Builds docker image
 docker: build_docker
