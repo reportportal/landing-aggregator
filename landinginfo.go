@@ -77,12 +77,12 @@ func main() {
 
 	router.Get("/twitter", func(w http.ResponseWriter, rq *http.Request) {
 		count := defaultTwitterRSCount
-		if pCount, err := strconv.Atoi(chi.URLParam(rq, "count")); nil == err {
+		if pCount, err := strconv.Atoi(rq.URL.Query().Get("count")); nil == err {
 			if pCount > conf.BufferSize {
-				if err := jsonpRS(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("provided count exceed max allower value :%d", conf.BufferSize)}, w, rq); nil != err {
+				if err := jsonpRS(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("provided count exceed max allower value (%d)", conf.BufferSize)}, w, rq); nil != err {
 					log.Error(err)
-					return
 				}
+				return
 			}
 			count = pCount
 		}
