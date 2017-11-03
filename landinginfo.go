@@ -1,18 +1,19 @@
 package main
 
 import (
+	"fmt"
 	"github.com/caarlos0/env"
-	"github.com/reportportal/commons-go/commons"
+	"github.com/go-chi/chi"
 	"github.com/reportportal/landing-aggregator/info"
-	"goji.io"
-	"goji.io/pat"
-
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/reportportal/commons-go.v1/commons"
+	"gopkg.in/reportportal/commons-go.v1/server"
 	"net/http"
-
 	"os"
 	"strconv"
 )
+
+const defaultTwitterRSCount = 3
 
 var (
 	// Branch contains the current Git revision. Use make to build to make
@@ -53,12 +54,12 @@ func main() {
 	twitsBuffer := info.BufferTweets(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.SearchTerm, conf.BufferSize)
 	ghAggr := info.NewGitHubAggregator(conf.GitHubToken, conf.IncludeBeta)
 
-	router := goji.NewMux()
+	router := chi.NewMux()
 
 	//404 - NOT Found middleware
-	router.Use(commons.NoHandlerFound(func(w http.ResponseWriter, rq *http.Request) {
-		commons.WriteJSON(http.StatusNotFound, map[string]string{"error": "not found"}, w)
-	}))
+	router.NotFound(func(w http.ResponseWriter, rq *http.Request) {
+		server.WriteJSON(http.StatusNotFound, map[string]string{"error": "not found"}, w)
+	})
 
 	//CORS middleware, allow all domains
 	router.Use(func(next http.Handler) http.Handler {
@@ -70,40 +71,51 @@ func main() {
 	})
 
 	//info endpoint
-	router.Handle(pat.Get("/info"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
-		commons.WriteJSON(http.StatusOK, buildInfo, w)
+	router.Get("/info", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+		server.WriteJSON(http.StatusOK, buildInfo, w)
 	}))
 
-	router.HandleFunc(pat.Get("/twitter"), func(w http.ResponseWriter, rq *http.Request) {
-		if err := jsonpRS(http.StatusOK, info.GetTweets(twitsBuffer), w, rq); nil != err {
+	router.Get("/twitter", func(w http.ResponseWriter, rq *http.Request) {
+		count := defaultTwitterRSCount
+		if pCount, err := strconv.Atoi(chi.URLParam(rq, "count")); nil == err {
+			if pCount > conf.BufferSize {
+				if err := jsonpRS(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("provided count exceed max allower value :%d", conf.BufferSize)}, w, rq); nil != err {
+					log.Error(err)
+				}
+			}
+			count = pCount
+		}
+
+		if err := jsonpRS(http.StatusOK, info.GetTweets(twitsBuffer, count), w, rq); nil != err {
 			log.Error(err)
 		}
+
 	})
 
-	router.HandleFunc(pat.Get("/versions"), func(w http.ResponseWriter, rq *http.Request) {
+	router.Get("/versions", func(w http.ResponseWriter, rq *http.Request) {
 		if err := jsonpRS(http.StatusOK, ghAggr.GetLatestTags(), w, rq); nil != err {
 			log.Error(err)
 		}
 	})
 
 	//GitHub-related routes
-	ghRouter := goji.SubMux()
-	router.Handle(pat.New("/github/*"), ghRouter)
-	ghRouter.Handle(pat.Get("/stars"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
-		commons.WriteJSON(http.StatusOK, ghAggr.GetStars(), w)
-	}))
-	ghRouter.Handle(pat.Get("/contribution"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
-		commons.WriteJSON(http.StatusOK, ghAggr.GetContributionStats(), w)
-	}))
-	ghRouter.Handle(pat.Get("/issues"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
-		commons.WriteJSON(http.StatusOK, ghAggr.GetIssueStats(), w)
-	}))
+	router.Route("/github/*", func(ghRouter chi.Router) {
+		ghRouter.Get("/stars", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+			server.WriteJSON(http.StatusOK, ghAggr.GetStars(), w)
+		}))
+		ghRouter.Get("/contribution", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+			server.WriteJSON(http.StatusOK, ghAggr.GetContributionStats(), w)
+		}))
+		ghRouter.Get("/issues", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+			server.WriteJSON(http.StatusOK, ghAggr.GetIssueStats(), w)
+		}))
+	})
 
 	//aggregate everything into on rs
-	router.Handle(pat.Get("/"), http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+	router.Get("/", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
 		rs := map[string]interface{}{}
 		rs["latest_versions"] = ghAggr.GetLatestTags()
-		rs["tweets"] = info.GetTweets(twitsBuffer)
+		rs["tweets"] = info.GetTweets(twitsBuffer, defaultTwitterRSCount)
 		rs["build"] = buildInfo
 
 		ghStats := map[string]interface{}{
@@ -113,7 +125,7 @@ func main() {
 		}
 		rs["github"] = ghStats
 
-		commons.WriteJSON(http.StatusOK, rs, w)
+		server.WriteJSON(http.StatusOK, rs, w)
 	}))
 
 	// listen and server on mentioned port
@@ -125,9 +137,9 @@ func main() {
 func jsonpRS(status int, body interface{}, w http.ResponseWriter, rq *http.Request) error {
 	jsonp := rq.URL.Query()["jsonp"]
 	if nil != jsonp && len(jsonp) >= 1 {
-		return commons.WriteJSONP(status, body, jsonp[0], w)
+		return server.WriteJSONP(status, body, jsonp[0], w)
 	}
-	return commons.WriteJSON(status, body, w)
+	return server.WriteJSON(status, body, w)
 }
 
 func loadConfig() *config {

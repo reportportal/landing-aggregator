@@ -1,70 +1,114 @@
-hash: 42cae26c7ffa242cf2849a4b3e8e9a5a12433034102be2c690a72c8d27de884f
-updated: 2017-08-08T15:37:08.200237236+03:00
+hash: 8f25b509a81c2d0cdf12f532aa7cc54fe5c2c9f1a60907ca4087a330eaa10342
+updated: 2017-11-03T13:12:43.891141+03:00
 imports:
+- name: github.com/avarabyeu/env
+  version: 4946e6742a05770376d9415afcaf28f67fd7b0e4
 - name: github.com/caarlos0/env
   version: 0cf029d5748c52beb2c9d20c81880cb4bdf8f788
 - name: github.com/cenkalti/backoff
   version: 4dc77674aceaabba2c7e3da25d4c823edfb73f99
+- name: github.com/clbanning/x2j
+  version: 5ee34bb343f10ecfc125261107681de62f985cf6
 - name: github.com/dghubble/go-twitter
-  version: f74be7f0f20b142558537ca43852457f7c52e051
+  version: c4115fa44a928413e0b857e0eb47376ffde3a61a
   subpackages:
   - twitter
 - name: github.com/dghubble/oauth1
   version: 70562a5920ad9b6ff03ef697c0f90ae569abbd2b
 - name: github.com/dghubble/sling
   version: eb56e89ac5088bebb12eef3cb4b293300f43608b
+- name: github.com/franela/goreq
+  version: 9df54ca75ad62b6295f33ca96e16a2ca10bc137a
+- name: github.com/go-chi/chi
+  version: f7c66f685bcab06bcce78ac212c5f3553c063d19
+  subpackages:
+  - middleware
+- name: github.com/go-playground/locales
+  version: 1e5f1161c6416a5ff48840eb8724a394e48cc534
+  subpackages:
+  - currency
+- name: github.com/go-playground/universal-translator
+  version: 71201497bace774495daed26a3874fd339e0b538
 - name: github.com/golang/protobuf
-  version: 1909bc2f63dc92bb931deace8b8312c4db72d12f
+  version: 5afd06f9d81a86d6e3bb7dc702d6bd148ea3ff23
   subpackages:
   - proto
 - name: github.com/google/go-github
-  version: 44e0413e5b74655281275e8c90cff2b27d9673a1
+  version: 464f5a91396a85da262abcac0b0a0aaf5b8f3c02
   subpackages:
   - github
 - name: github.com/google/go-querystring
   version: 53e6ce116135b80d037921a7fdd5138cf32d7a8a
   subpackages:
   - query
+- name: github.com/hashicorp/consul
+  version: 112c0603d3d6fb23ab5f15e8fdb1a761da8eaf9a
+  subpackages:
+  - api
+- name: github.com/hashicorp/go-cleanhttp
+  version: 3573b8b52aa7b37b9358d966a898feb387f62437
+- name: github.com/hashicorp/go-rootcerts
+  version: 6bb64b370b90e7ef1fa532be9e591a81c3493e00
 - name: github.com/hashicorp/go-version
-  version: 03c5bf6be031b6dd45afec16b1cf94fc8938bc77
+  version: fc61389e27c71d120f87031ca8c88a3428f372dd
+- name: github.com/hashicorp/serf
+  version: 555c6fa2a11d1f8e08ac9964015e864a3f61e7c3
+  subpackages:
+  - coordinate
+- name: github.com/hudl/fargo
+  version: 14ced469f7dc175f6fbf9f55d799f9f12e302965
+- name: github.com/miekg/dns
+  version: f01e44c2fdbf755201344b5b7917f974a4badd13
+- name: github.com/mitchellh/go-homedir
+  version: b8bc1bf767474819792c23f32d8286a45736f1c6
+- name: github.com/op/go-logging
+  version: d2e44aa77b7195c0ef782189985dd8550e22e4de
+- name: github.com/pkg/errors
+  version: 645ef00459ed84a119197bfb8d8205042c6df63d
 - name: github.com/reportportal/commons-go
-  version: 6c0e7d8bb557889e55c5a870a2377d4d114cb7c2
+  version: 10c1b6bea75f585d6e953eade481aa91b95e4f9a
   subpackages:
   - commons
 - name: github.com/sirupsen/logrus
   version: a3f95b5c423586578a4e099b11a46c2479628cac
-- name: goji.io
-  version: 0d89ff54b2c18c9c4ba530e32496aef902d3c6cd
-  subpackages:
-  - internal
-  - middleware
-  - pat
-  - pattern
 - name: golang.org/x/net
-  version: 054b33e6527139ad5b1ec2f6232c3b175bd9a30c
+  version: 0a9397675ba34b2845f758fe3cd68828369c6517
   subpackages:
   - context
   - context/ctxhttp
 - name: golang.org/x/oauth2
-  version: 9a379c6b3e95a790ffc43293c2a78dee0d7b6e20
+  version: 13449ad91cb26cb47661c1b080790392170385fd
   subpackages:
   - internal
 - name: golang.org/x/sys
-  version: 6faef541c73732f438fb660a212750a9ba9f9362
+  version: 314a259e304ff91bd6985da2a7149bbf91237993
   subpackages:
   - unix
 - name: google.golang.org/appengine
-  version: c5a90ac045b779001847fec87403f5cba090deae
+  version: 24e4144ec923c2374f6b06610c0df16a9222c3d9
   subpackages:
   - internal
-  - internal/app_identity
   - internal/base
   - internal/datastore
   - internal/log
-  - internal/modules
   - internal/remote_api
   - internal/urlfetch
   - urlfetch
+- name: gopkg.in/gcfg.v1
+  version: 0ef1a8547f99b94fac9af5377dd72febba18f37c
+  subpackages:
+  - scanner
+  - token
+  - types
+- name: gopkg.in/go-playground/validator.v9
+  version: 1304298bf10d085adec514b076772a79c9cadb6b
+- name: gopkg.in/reportportal/commons-go.v1
+  version: 46bb64cec9fb0c257d7a6ddfddf1df3617ae4cef
+  subpackages:
+  - commons
+  - conf
+  - registry
+  - server
 testImports:
 - name: github.com/davecgh/go-spew
   version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9

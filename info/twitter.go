@@ -153,7 +153,7 @@ func toTweetInfo(tweet *twitter.Tweet) *TweetInfo {
 }
 
 //GetTweets buffered tweets sorted by date
-func GetTweets(buf *buf.RingBuffer) []*TweetInfo {
+func GetTweets(buf *buf.RingBuffer, count int) []*TweetInfo {
 	tweets := []*TweetInfo{}
 	buf.Do(func(tweet interface{}) {
 		tweets = append(tweets, tweet.(*TweetInfo))
@@ -161,5 +161,5 @@ func GetTweets(buf *buf.RingBuffer) []*TweetInfo {
 	sort.Slice(tweets, func(i, j int) bool {
 		return tweets[i].CreatedAt.After(tweets[j].CreatedAt)
 	})
-	return tweets
+	return tweets[0:count]
 }

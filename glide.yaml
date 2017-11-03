@@ -13,16 +13,15 @@ import:
   subpackages:
   - github
 - package: github.com/hashicorp/go-version
-- package: github.com/reportportal/commons-go
+- package: gopkg.in/reportportal/commons-go.v1
   subpackages:
   - commons
+  - server
 - package: github.com/sirupsen/logrus
   version: 1.0.2
-- package: goji.io
-  version: v2.0
-  subpackages:
-  - pat
 - package: golang.org/x/oauth2
+- package: github.com/go-chi/chi
+  version: ^3.3.0
 testImport:
 - package: github.com/stretchr/testify
   version: v1.1.4
