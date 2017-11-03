@@ -81,6 +81,7 @@ func main() {
 			if pCount > conf.BufferSize {
 				if err := jsonpRS(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("provided count exceed max allower value :%d", conf.BufferSize)}, w, rq); nil != err {
 					log.Error(err)
+					return
 				}
 			}
 			count = pCount
