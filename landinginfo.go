@@ -117,6 +117,7 @@ func main() {
 		rs := map[string]interface{}{}
 		rs["latest_versions"] = ghAggr.GetLatestTags()
 		rs["tweets"] = info.GetTweets(twitsBuffer, defaultTwitterRSCount)
+		rs["youtube"] = youtubeBuffer.GetVideos(defaultYoutubeRSCount)
 		rs["build"] = buildInfo
 
 		ghStats := map[string]interface{}{
@@ -159,7 +160,7 @@ func loadConfig() *config {
 	return &cfg
 }
 
-func buildYoutubeBuffer(conf *config, ) (*info.YoutubeBuffer, error) {
+func buildYoutubeBuffer(conf *config) (*info.YoutubeBuffer, error) {
 	googleKeyFile, err := base64.StdEncoding.DecodeString(conf.GoogleAPIKeyFile)
 	if nil != err {
 		return nil, err
