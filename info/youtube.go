@@ -89,7 +89,7 @@ func (y *YoutubeBuffer) loadVideos() {
 }
 func (y *YoutubeBuffer) getVideos() ([]VideoInfo, error) {
 	call := y.youtube.Search.List("snippet")
-	call = call.ChannelId(y.channelID).Fields("items(id/videoId)").Type("video").MaxResults(y.cacheSize).IfNoneMatch(y.searchETag)
+	call = call.ChannelId(y.channelID).Fields("items(id/videoId)").Order("date").Type("video").MaxResults(y.cacheSize).IfNoneMatch(y.searchETag)
 	searchRS, err := call.Do()
 	if nil != err {
 		return nil, err
