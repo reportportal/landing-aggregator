@@ -35,7 +35,7 @@ test: vendor
 	$(GO) test $(glide novendor)
 
 # executes bunch of checkstyle validators
-checkstyle: get-build-deps
+checkstyle:
 	gometalinter --vendor ./... --fast --disable=gas --disable=errcheck --disable=gotype #--deadline 5m
 
 # formats the project

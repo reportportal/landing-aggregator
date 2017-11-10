@@ -1,25 +1,25 @@
 package info
 
 import (
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
-	"google.golang.org/api/youtube/v3"
-	"github.com/pkg/errors"
-	"strings"
-	"time"
-	"sync/atomic"
-	"gopkg.in/reportportal/commons-go.v1/commons"
 	"google.golang.org/api/googleapi"
-	log "github.com/sirupsen/logrus"
-	"fmt"
+	"google.golang.org/api/youtube/v3"
+	"gopkg.in/reportportal/commons-go.v1/commons"
+	"strings"
+	"sync/atomic"
+	"time"
 )
 
 //"https://www.youtube.com/watch?v=" + video.Id,
 
 const (
-	videosListSyncPeriod time.Duration = time.Second * 10
+	videosListSyncPeriod = time.Hour * 2
 )
 
+//YoutubeBuffer represents buffer of videos
 type YoutubeBuffer struct {
 	youtube   *youtube.Service
 	channelID string
@@ -30,7 +30,7 @@ type YoutubeBuffer struct {
 	videosETag string
 }
 
-//TweetInfo represents short tweet version
+//VideoInfo represents video details
 type VideoInfo struct {
 	ID          string `json:"id"`
 	Title       string `json:"title"`
@@ -39,7 +39,8 @@ type VideoInfo struct {
 	PublishedAt string `json:"published_at"`
 }
 
-func NewYoutubeVideosBuffer(channelID string, cacheSize int64, keyFile []byte) (*YoutubeBuffer, error) {
+//NewYoutubeVideosBuffer creates new buffer of youtube videos info
+func NewYoutubeVideosBuffer(channelID string, cacheSize int, keyFile []byte) (*YoutubeBuffer, error) {
 	jwtConfig, err := google.JWTConfigFromJSON(keyFile, youtube.YoutubeScope)
 	if err != nil {
 		return nil, errors.Wrap(err, "Cannot build Youtube service")
@@ -53,7 +54,7 @@ func NewYoutubeVideosBuffer(channelID string, cacheSize int64, keyFile []byte) (
 	buffer := &YoutubeBuffer{
 		youtube:   srv,
 		channelID: channelID,
-		cacheSize: cacheSize,
+		cacheSize: int64(cacheSize),
 	}
 
 	//schedules updates of latest versions
@@ -64,8 +65,14 @@ func NewYoutubeVideosBuffer(channelID string, cacheSize int64, keyFile []byte) (
 	return buffer, nil
 }
 
-func (y *YoutubeBuffer) GetVideos() []VideoInfo {
+//GetAllVideos returns all videos available in the buffer
+func (y *YoutubeBuffer) GetAllVideos() []VideoInfo {
 	return y.info.Load().([]VideoInfo)
+}
+
+//GetVideos returns slice with specified count of videos
+func (y *YoutubeBuffer) GetVideos(c int) []VideoInfo {
+	return y.info.Load().([]VideoInfo)[0:c]
 }
 
 func (y *YoutubeBuffer) loadVideos() {
@@ -93,11 +100,7 @@ func (y *YoutubeBuffer) getVideos() ([]VideoInfo, error) {
 	for i, item := range searchRS.Items {
 		ids[i] = item.Id.VideoId
 	}
-
-	fmt.Println(y.videosETag)
 	rs, err := y.youtube.Videos.List("snippet,contentDetails").Id(strings.Join(ids, ",")).IfNoneMatch(y.videosETag).MaxResults(y.cacheSize).Do()
-	fmt.Println(rs.HTTPStatusCode)
-	fmt.Println(rs.Header)
 	if nil != err {
 		return nil, err
 	}

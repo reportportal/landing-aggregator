@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"github.com/caarlos0/env"
 	"github.com/go-chi/chi"
@@ -55,24 +56,20 @@ func main() {
 		BuildDate: BuildDate,
 	}
 	twitsBuffer := info.BufferTweets(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.SearchTerm, conf.BufferSize)
-	youtubeBuffer := info.NewYoutubeVideosBuffer(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.SearchTerm, conf.BufferSize)
 	ghAggr := info.NewGitHubAggregator(conf.GitHubToken, conf.IncludeBeta)
+
+	youtubeBuffer, err := buildYoutubeBuffer(conf)
+	if err != nil {
+		log.Fatalf("Cannot init youtube buffer. %s", err)
+	}
 
 	router := chi.NewMux()
 
 	//404 - NOT Found middleware
-	router.NotFound(func(w http.ResponseWriter, rq *http.Request) {
-		server.WriteJSON(http.StatusNotFound, map[string]string{"error": "not found"}, w)
-	})
+	router.NotFound(notFoundMiddleware)
 
 	//CORS middleware, allow all domains
-	router.Use(func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
-			w.Header().Add("Access-Control-Allow-Origin", "*")
-			next.ServeHTTP(w, rq)
-		})
-
-	})
+	router.Use(enableCORSMiddleware)
 
 	//info endpoint
 	router.Get("/info", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
@@ -80,45 +77,26 @@ func main() {
 	}))
 
 	router.Get("/twitter", func(w http.ResponseWriter, rq *http.Request) {
-		count := defaultTwitterRSCount
-		if pCount, err := strconv.Atoi(rq.URL.Query().Get("count")); nil == err {
-			if pCount > conf.BufferSize {
-				if err := jsonpRS(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("provided count exceed max allower value (%d)", conf.BufferSize)}, w, rq); nil != err {
-					log.Error(err)
-				}
-				return
-			}
-			count = pCount
+		count := getQueryIntParam(rq, "count", defaultTwitterRSCount)
+		if count > conf.BufferSize {
+			jsonpRS(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("provided count exceed max allower value (%d)", conf.BufferSize)}, w, rq)
+			return
 		}
-
-		if err := jsonpRS(http.StatusOK, info.GetTweets(twitsBuffer, count), w, rq); nil != err {
-			log.Error(err)
-		}
+		jsonpRS(http.StatusOK, info.GetTweets(twitsBuffer, count), w, rq)
 
 	})
 
 	router.Get("/youtube", func(w http.ResponseWriter, rq *http.Request) {
-		count := defaultYoutubeRSCount
-		if pCount, err := strconv.Atoi(rq.URL.Query().Get("count")); nil == err {
-			if pCount > conf.YoutubeBufferSize {
-				if err := jsonpRS(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("provided count exceed max allower value (%d)", conf.BufferSize)}, w, rq); nil != err {
-					log.Error(err)
-				}
-				return
-			}
-			count = pCount
+		count := getQueryIntParam(rq, "count", defaultYoutubeRSCount)
+		if count > conf.YoutubeBufferSize {
+			jsonpRS(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("provided count exceed max allower value (%d)", conf.BufferSize)}, w, rq)
+			return
 		}
-
-		if err := jsonpRS(http.StatusOK, youtubeBuffer.GetVideos()[0:count], w, rq); nil != err {
-			log.Error(err)
-		}
-
+		jsonpRS(http.StatusOK, youtubeBuffer.GetVideos(count), w, rq)
 	})
 
 	router.Get("/versions", func(w http.ResponseWriter, rq *http.Request) {
-		if err := jsonpRS(http.StatusOK, ghAggr.GetLatestTags(), w, rq); nil != err {
-			log.Error(err)
-		}
+		jsonpRS(http.StatusOK, ghAggr.GetLatestTags(), w, rq)
 	})
 
 	//GitHub-related routes
@@ -157,12 +135,19 @@ func main() {
 
 }
 
-func jsonpRS(status int, body interface{}, w http.ResponseWriter, rq *http.Request) error {
+func jsonpRS(status int, body interface{}, w http.ResponseWriter, rq *http.Request) {
 	jsonp := rq.URL.Query()["jsonp"]
+	var err error
 	if nil != jsonp && len(jsonp) >= 1 {
-		return server.WriteJSONP(status, body, jsonp[0], w)
+		//write JSONP
+		err = server.WriteJSONP(status, body, jsonp[0], w)
+	} else {
+		//write JSON
+		err = server.WriteJSON(status, body, w)
 	}
-	return server.WriteJSON(status, body, w)
+	if nil != err {
+		log.Error(err)
+	}
 }
 
 func loadConfig() *config {
@@ -172,6 +157,21 @@ func loadConfig() *config {
 		log.Fatalf("%+v\n", err)
 	}
 	return &cfg
+}
+
+func buildYoutubeBuffer(conf *config, ) (*info.YoutubeBuffer, error) {
+	googleKeyFile, err := base64.StdEncoding.DecodeString(conf.GoogleAPIKeyFile)
+	if nil != err {
+		return nil, err
+	}
+	return info.NewYoutubeVideosBuffer(conf.YoutubeChannelID, conf.YoutubeBufferSize, googleKeyFile)
+}
+
+func getQueryIntParam(rq *http.Request, name string, def int) int {
+	if pCount, err := strconv.Atoi(rq.URL.Query().Get(name)); nil == err {
+		return pCount
+	}
+	return def
 }
 
 type config struct {
@@ -185,6 +185,18 @@ type config struct {
 	IncludeBeta    bool   `env:"GITHUB_INCLUDE_BETA" envDefault:"false"`
 	GitHubToken    string `env:"GITHUB_TOKEN" envDefault:"false"`
 
-	GoogleApiKeyFile  string `env:"GOOGLE_API_KEY" envDefault:"false"`
+	GoogleAPIKeyFile  string `env:"GOOGLE_API_KEY" envDefault:"false"`
 	YoutubeBufferSize int    `env:"YOUTUBE_BUFFER_SIZE" envDefault:"10"`
+	YoutubeChannelID  string `env:"YOUTUBE_CHANNEL_ID,required"`
+}
+
+var notFoundMiddleware = func(w http.ResponseWriter, rq *http.Request) {
+	server.WriteJSON(http.StatusNotFound, map[string]string{"error": "not found"}, w)
+}
+
+var enableCORSMiddleware = func(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+		w.Header().Add("Access-Control-Allow-Origin", "*")
+		next.ServeHTTP(w, rq)
+	})
 }

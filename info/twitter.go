@@ -3,9 +3,9 @@ package info
 import (
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
-	"gopkg.in/reportportal/commons-go.v1/commons"
 	"github.com/reportportal/landing-aggregator/buf"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/reportportal/commons-go.v1/commons"
 	"sort"
 	"strings"
 	"time"
