@@ -22,6 +22,9 @@ import:
 - package: golang.org/x/oauth2
 - package: github.com/go-chi/chi
   version: ^3.3.0
+- package: google.golang.org/api
+  subpackages:
+  - youtube/v3
 testImport:
 - package: github.com/stretchr/testify
   version: v1.1.4

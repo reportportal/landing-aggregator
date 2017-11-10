@@ -13,7 +13,10 @@ import (
 	"strconv"
 )
 
-const defaultTwitterRSCount = 3
+const (
+	defaultTwitterRSCount = 3
+	defaultYoutubeRSCount = 3
+)
 
 var (
 	// Branch contains the current Git revision. Use make to build to make
@@ -52,6 +55,7 @@ func main() {
 		BuildDate: BuildDate,
 	}
 	twitsBuffer := info.BufferTweets(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.SearchTerm, conf.BufferSize)
+	youtubeBuffer := info.NewYoutubeVideosBuffer(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.SearchTerm, conf.BufferSize)
 	ghAggr := info.NewGitHubAggregator(conf.GitHubToken, conf.IncludeBeta)
 
 	router := chi.NewMux()
@@ -88,6 +92,24 @@ func main() {
 		}
 
 		if err := jsonpRS(http.StatusOK, info.GetTweets(twitsBuffer, count), w, rq); nil != err {
+			log.Error(err)
+		}
+
+	})
+
+	router.Get("/youtube", func(w http.ResponseWriter, rq *http.Request) {
+		count := defaultYoutubeRSCount
+		if pCount, err := strconv.Atoi(rq.URL.Query().Get("count")); nil == err {
+			if pCount > conf.YoutubeBufferSize {
+				if err := jsonpRS(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("provided count exceed max allower value (%d)", conf.BufferSize)}, w, rq); nil != err {
+					log.Error(err)
+				}
+				return
+			}
+			count = pCount
+		}
+
+		if err := jsonpRS(http.StatusOK, youtubeBuffer.GetVideos()[0:count], w, rq); nil != err {
 			log.Error(err)
 		}
 
@@ -162,4 +184,7 @@ type config struct {
 	SearchTerm     string `env:"TWITTER_SEARCH_TERM" envDefault:"@reportportal_io"`
 	IncludeBeta    bool   `env:"GITHUB_INCLUDE_BETA" envDefault:"false"`
 	GitHubToken    string `env:"GITHUB_TOKEN" envDefault:"false"`
+
+	GoogleApiKeyFile  string `env:"GOOGLE_API_KEY" envDefault:"false"`
+	YoutubeBufferSize int    `env:"YOUTUBE_BUFFER_SIZE" envDefault:"10"`
 }

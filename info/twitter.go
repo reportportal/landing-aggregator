@@ -3,7 +3,7 @@ package info
 import (
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
-	"github.com/reportportal/commons-go/commons"
+	"gopkg.in/reportportal/commons-go.v1/commons"
 	"github.com/reportportal/landing-aggregator/buf"
 	log "github.com/sirupsen/logrus"
 	"sort"
@@ -149,7 +149,8 @@ func toTweetInfo(tweet *twitter.Tweet) *TweetInfo {
 		CreatedAt:        t,
 		User:             tweet.User.Name,
 		Entities:         tweet.Entities,
-		ExtendedEntities: tweet.ExtendedEntities}
+		ExtendedEntities: tweet.ExtendedEntities,
+	}
 }
 
 //GetTweets buffered tweets sorted by date

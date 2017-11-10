@@ -6,7 +6,7 @@ import (
 	"github.com/dghubble/sling"
 	"github.com/google/go-github/github"
 	"github.com/hashicorp/go-version"
-	"github.com/reportportal/commons-go/commons"
+	"gopkg.in/reportportal/commons-go.v1/commons"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"sort"

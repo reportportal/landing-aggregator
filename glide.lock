@@ -1,6 +1,10 @@
-hash: 8f25b509a81c2d0cdf12f532aa7cc54fe5c2c9f1a60907ca4087a330eaa10342
-updated: 2017-11-03T13:12:43.891141+03:00
+hash: f2d7b920e7c79f76bb8ec5a58a5aec6a1681ef9ea885fd25a263e77bc6e3eef1
+updated: 2017-11-09T14:47:47.525575007+03:00
 imports:
+- name: cloud.google.com/go
+  version: fe58ddc832a5ceea715bf743f28e13c6b8b1bb4d
+  subpackages:
+  - compute/metadata
 - name: github.com/avarabyeu/env
   version: 4946e6742a05770376d9415afcaf28f67fd7b0e4
 - name: github.com/caarlos0/env
@@ -30,11 +34,11 @@ imports:
 - name: github.com/go-playground/universal-translator
   version: 71201497bace774495daed26a3874fd339e0b538
 - name: github.com/golang/protobuf
-  version: 5afd06f9d81a86d6e3bb7dc702d6bd148ea3ff23
+  version: 1643683e1b54a9e88ad26d98f81400c8c9d9f4f9
   subpackages:
   - proto
 - name: github.com/google/go-github
-  version: 464f5a91396a85da262abcac0b0a0aaf5b8f3c02
+  version: 8c08f4fba5e05e0fd2821a5f80cf0cf643bd5314
   subpackages:
   - github
 - name: github.com/google/go-querystring
@@ -52,7 +56,7 @@ imports:
 - name: github.com/hashicorp/go-version
   version: fc61389e27c71d120f87031ca8c88a3428f372dd
 - name: github.com/hashicorp/serf
-  version: 555c6fa2a11d1f8e08ac9964015e864a3f61e7c3
+  version: e39abe475740649229c5c72b0cc1da10da7ed23a
   subpackages:
   - coordinate
 - name: github.com/hudl/fargo
@@ -65,32 +69,40 @@ imports:
   version: d2e44aa77b7195c0ef782189985dd8550e22e4de
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
-- name: github.com/reportportal/commons-go
-  version: 10c1b6bea75f585d6e953eade481aa91b95e4f9a
-  subpackages:
-  - commons
 - name: github.com/sirupsen/logrus
   version: a3f95b5c423586578a4e099b11a46c2479628cac
 - name: golang.org/x/net
-  version: 0a9397675ba34b2845f758fe3cd68828369c6517
+  version: f01ecb60fe3835d80d9a0b7b2bf24b228c89260e
   subpackages:
   - context
   - context/ctxhttp
 - name: golang.org/x/oauth2
-  version: 13449ad91cb26cb47661c1b080790392170385fd
+  version: 9ff8ebcc8e241d46f52ecc5bff0e5a2f2dbef402
   subpackages:
+  - google
   - internal
+  - jws
+  - jwt
 - name: golang.org/x/sys
-  version: 314a259e304ff91bd6985da2a7149bbf91237993
+  version: abf9c25f54453410d0c6668e519582a9e1115027
   subpackages:
   - unix
+- name: google.golang.org/api
+  version: 34bc9e3ce3692fb01d22f685df28518773cbdae9
+  subpackages:
+  - gensupport
+  - googleapi
+  - googleapi/internal/uritemplates
+  - youtube/v3
 - name: google.golang.org/appengine
-  version: 24e4144ec923c2374f6b06610c0df16a9222c3d9
+  version: 9d8544a6b2c7df9cff240fcf92d7b2f59bc13416
   subpackages:
   - internal
+  - internal/app_identity
   - internal/base
   - internal/datastore
   - internal/log
+  - internal/modules
   - internal/remote_api
   - internal/urlfetch
   - urlfetch
