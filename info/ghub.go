@@ -201,13 +201,17 @@ func (s *GitHubAggregator) loadVersionsMap(includeBeta bool) {
 
 	s.doWithRepos(func(repo *github.Repository) {
 		var tagsRs []*github.RepositoryTag
-		rq, _ := sling.New().Get(repo.GetTagsURL()).Request()
-
-		_, err := s.c.Do(context.Background(), rq, &tagsRs)
+		rq, err := sling.New().Get(repo.GetTagsURL()).Request()
 		if nil != err {
 			log.Error(err)
 			return
 		}
+
+		if _, err = s.c.Do(context.Background(), rq, &tagsRs); nil != err {
+			log.Error(err)
+			return
+		}
+
 		versions := version.Collection([]*version.Version{})
 		for _, tag := range tagsRs {
 			name := tag.GetName()

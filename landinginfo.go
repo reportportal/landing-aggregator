@@ -7,8 +7,8 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/reportportal/landing-aggregator/info"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/reportportal/commons-go.v1/commons"
-	"gopkg.in/reportportal/commons-go.v1/server"
+	"gopkg.in/reportportal/commons-go.v5/commons"
+	"gopkg.in/reportportal/commons-go.v5/server"
 	"net/http"
 	"os"
 	"strconv"
@@ -73,7 +73,7 @@ func main() {
 
 	//info endpoint
 	router.Get("/info", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
-		server.WriteJSON(http.StatusOK, buildInfo, w)
+		jsonRS(http.StatusOK, buildInfo, w)
 	}))
 
 	router.Get("/twitter", func(w http.ResponseWriter, rq *http.Request) {
@@ -102,13 +102,13 @@ func main() {
 	//GitHub-related routes
 	router.Route("/github/*", func(ghRouter chi.Router) {
 		ghRouter.Get("/stars", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
-			server.WriteJSON(http.StatusOK, ghAggr.GetStars(), w)
+			jsonRS(http.StatusOK, ghAggr.GetStars(), w)
 		}))
 		ghRouter.Get("/contribution", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
-			server.WriteJSON(http.StatusOK, ghAggr.GetContributionStats(), w)
+			jsonRS(http.StatusOK, ghAggr.GetContributionStats(), w)
 		}))
 		ghRouter.Get("/issues", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
-			server.WriteJSON(http.StatusOK, ghAggr.GetIssueStats(), w)
+			jsonRS(http.StatusOK, ghAggr.GetIssueStats(), w)
 		}))
 	})
 
@@ -127,12 +127,15 @@ func main() {
 		}
 		rs["github"] = ghStats
 
-		server.WriteJSON(http.StatusOK, rs, w)
+		jsonRS(http.StatusOK, rs, w)
 	}))
 
 	// listen and server on mentioned port
 	log.Infof("Starting on port %d", conf.Port)
-	http.ListenAndServe(":"+strconv.Itoa(conf.Port), router)
+
+	if err := http.ListenAndServe(":"+strconv.Itoa(conf.Port), router); nil != err {
+		log.Fatal(err)
+	}
 
 }
 
@@ -148,6 +151,12 @@ func jsonpRS(status int, body interface{}, w http.ResponseWriter, rq *http.Reque
 	}
 	if nil != err {
 		log.Error(err)
+	}
+}
+
+func jsonRS(status int, body interface{}, w http.ResponseWriter) {
+	if err := server.WriteJSON(status, body, w); nil != err {
+		log.Error("Cannot respond", err)
 	}
 }
 
@@ -192,7 +201,7 @@ type config struct {
 }
 
 var notFoundMiddleware = func(w http.ResponseWriter, rq *http.Request) {
-	server.WriteJSON(http.StatusNotFound, map[string]string{"error": "not found"}, w)
+	jsonRS(http.StatusNotFound, map[string]string{"error": "not found"}, w)
 }
 
 var enableCORSMiddleware = func(next http.Handler) http.Handler {
