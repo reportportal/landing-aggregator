@@ -133,6 +133,11 @@ func (s *GitHubAggregator) loadCommitStats() {
 
 			for _, tr := range ranges {
 				count := 0
+
+				if len(stats) < int(tr) {
+					continue
+				}
+
 				for _, stat := range stats[len(stats)-int(tr):] {
 					count += stat.GetTotal()
 				}

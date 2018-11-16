@@ -1,16 +1,16 @@
 hash: 91a1a0bf1f21f7194f62b92f01dd69a1cb5ac1e5677d555729793a299f9a8ade
-updated: 2018-08-22T13:21:20.67805+03:00
+updated: 2018-11-16T15:48:42.785171+03:00
 imports:
 - name: cloud.google.com/go
-  version: 64a2037ec6be8a4b0c1d1f706ed35b428b989239
+  version: 1fd54cf41e6e0e178ffe3c52b0e2260281f603e3
   subpackages:
   - compute/metadata
 - name: github.com/caarlos0/env
-  version: 1cddc31c48c56ecd700d873edb9fd5b6f5df922a
+  version: 518fcfb943252f77846f92ce5794086d9cb4a1b5
 - name: github.com/cenkalti/backoff
-  version: b7325b0f3f1097c6546ea5e83c4a23267e58ad71
+  version: 62661b46c4093e2c1f38d943e663db1a29873e80
 - name: github.com/dghubble/go-twitter
-  version: a34e9059cd58e96429cee9c8a87fd8d907da6843
+  version: e75339c4bc3d739058b5e43806e7accda132fb53
   subpackages:
   - twitter
 - name: github.com/dghubble/oauth1
@@ -18,7 +18,7 @@ imports:
 - name: github.com/dghubble/sling
   version: eb56e89ac5088bebb12eef3cb4b293300f43608b
 - name: github.com/go-chi/chi
-  version: e83ac2304db3c50cf03d96a2fcd39009d458bc35
+  version: b5294d10673813fac8558e7f47242bc9e61b4c25
   subpackages:
   - middleware
 - name: github.com/go-playground/locales
@@ -28,34 +28,31 @@ imports:
 - name: github.com/go-playground/universal-translator
   version: 71201497bace774495daed26a3874fd339e0b538
 - name: github.com/golang/protobuf
-  version: b27b920f9e71b439b873b17bf99f56467623814a
+  version: 7716a980bceefe9a0213654823d9ea62d23b87a2
   subpackages:
   - proto
 - name: github.com/google/go-github
-  version: d7732128a00e8e95e8fe896017da18ee20b2180d
+  version: e16f49dbde5ff669ad7027145d2d4d65d0e25bee
   subpackages:
   - github
 - name: github.com/google/go-querystring
-  version: 53e6ce116135b80d037921a7fdd5138cf32d7a8a
+  version: 44c6ddd0a2342c386950e880b658017258da92fc
   subpackages:
   - query
 - name: github.com/hashicorp/go-version
-  version: 270f2f71b1ee587f3b609f00f422b76a6b28f348
+  version: b5a281d3160aa11950a6182bd9a9dc2cb1e02d50
+- name: github.com/konsorten/go-windows-terminal-sequences
+  version: 5c8c8bd35d3832f5d134ae1e1e375b69a4d25242
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
-- name: github.com/reportportal/commons-go
-  version: 504b0e6fbc6a71517b8135864ebc7240409ca7c1
-  subpackages:
-  - commons
-  - conf
 - name: github.com/sirupsen/logrus
-  version: 3e01752db0189b9157070a0e1668a620f9a85da2
+  version: bcd833dfe83d3cebad139e4a29ed79cb2318bf95
 - name: golang.org/x/crypto
-  version: 614d502a4dac94afa3a6ce146bd1736da82514c6
+  version: 0e37d006457bf46f9e6692014ba72ef82c33022c
   subpackages:
   - ssh/terminal
 - name: golang.org/x/net
-  version: 922f4815f713f213882e8ef45e0d315b164d705c
+  version: f04abc6bdfa7a0171a8a0c9fd2ada9391044d056
   subpackages:
   - context
   - context/ctxhttp
@@ -67,19 +64,19 @@ imports:
   - jws
   - jwt
 - name: golang.org/x/sys
-  version: 3b58ed4ad3395d483fc92d5d14123ce2c3581fec
+  version: 90868a75fefd03942536221d7c0e2f84ec62a668
   subpackages:
   - unix
   - windows
 - name: google.golang.org/api
-  version: 0873c9a91f718ab0bcccfabaf9ce3ada04f9dc7b
+  version: 920bb1beccf73147754c5567fce5b1f32cd3030f
   subpackages:
   - gensupport
   - googleapi
   - googleapi/internal/uritemplates
   - youtube/v3
 - name: google.golang.org/appengine
-  version: 4216e58b9158e5f1c906f1aca75162a46a2ec88a
+  version: ae0ab99deb4dc413a2b4bd6c8bdd0eb67f1e4d06
   subpackages:
   - internal
   - internal/app_identity
@@ -91,15 +88,16 @@ imports:
   - internal/urlfetch
   - urlfetch
 - name: gopkg.in/go-playground/validator.v9
-  version: e69e9a28bb62b977fdc58d051f1bb477b7cbe486
+  version: 1fa3c8d6336562f0a3f95c73593ee2b57ff4da11
 - name: gopkg.in/reportportal/commons-go.v1
   version: 8941600c4b44fc35763116ec9158b93dfd9359df
   subpackages:
   - commons
 - name: gopkg.in/reportportal/commons-go.v5
-  version: 3bac743e65cf0f1667b7e4d225ef9e94979df58b
+  version: 4d7a70b2febd231a805e035f3149527b0d0e187b
   subpackages:
   - commons
+  - conf
   - server
 testImports:
 - name: github.com/davecgh/go-spew
