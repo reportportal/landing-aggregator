@@ -5,7 +5,7 @@ import (
 	"github.com/dghubble/oauth1"
 	"github.com/reportportal/landing-aggregator/buf"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/reportportal/commons-go.v1/commons"
+	"gopkg.in/reportportal/commons-go.v5/commons"
 	"sort"
 	"strings"
 	"time"

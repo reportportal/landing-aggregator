@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"github.com/caarlos0/env"
 	"github.com/go-chi/chi"
@@ -100,7 +101,7 @@ func main() {
 	})
 
 	//GitHub-related routes
-	router.Route("/github/*", func(ghRouter chi.Router) {
+	router.Route("/github/", func(ghRouter chi.Router) {
 		ghRouter.Get("/stars", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
 			jsonRS(http.StatusOK, ghAggr.GetStars(), w)
 		}))
@@ -169,7 +170,22 @@ func loadConfig() *config {
 	return &cfg
 }
 
-func buildYoutubeBuffer(conf *config) (*info.YoutubeBuffer, error) {
+func buildYoutubeBuffer(conf *config) (buf *info.YoutubeBuffer, err error) {
+	if r := recover(); r != nil {
+		// find out exactly what the error was and set err
+		switch x := r.(type) {
+		case string:
+			err = errors.New(x)
+		case error:
+			err = x
+		default:
+			err = errors.New("unknown panic")
+		}
+		// invalidate rep
+		buf = nil
+		// return the modified err and rep
+	}
+
 	googleKeyFile, err := base64.StdEncoding.DecodeString(conf.GoogleAPIKeyFile)
 	if nil != err {
 		return nil, err

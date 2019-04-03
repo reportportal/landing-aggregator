@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/dghubble/sling"
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v24/github"
 	"github.com/hashicorp/go-version"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
-	"gopkg.in/reportportal/commons-go.v1/commons"
+	"gopkg.in/reportportal/commons-go.v5/commons"
 	"sort"
 	"strings"
 	"sync"
@@ -124,7 +124,7 @@ func (s *GitHubAggregator) loadCommitStats() {
 
 	mu := sync.Mutex{}
 	s.doWithRepos(func(repo *github.Repository) {
-		commons.Retry(5, time.Second*10, func() error {
+		if err := commons.Retry(5, time.Second*10, func() error {
 			stats, _, err := s.c.Repositories.ListCommitActivity(context.Background(), rpOrg, repo.GetName())
 			if nil != err {
 				log.Errorf("[%s] : %s", repo.GetName(), err.Error())
@@ -146,7 +146,9 @@ func (s *GitHubAggregator) loadCommitStats() {
 				mu.Unlock()
 			}
 			return nil
-		})
+		}); err != nil {
+			log.Error(err)
+		}
 	})
 
 	s.commitStats.Store(commitStats)
@@ -158,7 +160,7 @@ func (s *GitHubAggregator) loadUniqueContributors() {
 	uniqueContributors := make(map[StatRange]int, len(ranges))
 
 	s.doWithRepos(func(repo *github.Repository) {
-		commons.Retry(statsRetryAttempts, statsRetryPeriod, func() error {
+		if err := commons.Retry(statsRetryAttempts, statsRetryPeriod, func() error {
 			contributors, _, err := s.c.Repositories.ListContributorsStats(context.Background(), rpOrg, repo.GetName())
 			if nil != err {
 				log.Debugf("[%s] : %s", repo.GetName(), err.Error())
@@ -190,7 +192,9 @@ func (s *GitHubAggregator) loadUniqueContributors() {
 			}
 
 			return nil
-		})
+		}); err != nil {
+			log.Error(err)
+		}
 	})
 
 	s.uniqueContributors.Store(uniqueContributors)
