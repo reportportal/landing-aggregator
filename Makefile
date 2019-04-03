@@ -9,10 +9,9 @@ BINARY_DIR=bin
 BUILD_DEPS:= github.com/alecthomas/gometalinter
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 
-.PHONY: vendor test build
+.PHONY: test build
 
 help:
-	@echo "vendor      - Install govendor and sync vendored dependencies"
 	@echo "checkstyle  - executes bunch of checkstyle validators"
 	@echo "fmt         - formats the project"
 	@echo "test        - executes unit tests"
@@ -21,18 +20,13 @@ help:
 	@echo "clean       - Cleans build-related files from working directory"
 
 
-vendor: ## Install govendor and sync Hugo's vendored dependencies
-	$(GO) get -v github.com/Masterminds/glide
-	cd $(GOPATH)/src/github.com/Masterminds/glide && git checkout tags/v0.12.3 && go install && cd -
-	glide install
-
-get-build-deps: vendor # prepare stuff required for the build
+get-build-deps: # prepare stuff required for the build
 	$(GO) get $(BUILD_DEPS)
 	gometalinter --install
 
 # executes unit-tests
-test: vendor
-	$(GO) test $(glide novendor)
+test:
+	$(GO) test ./...
 
 # executes bunch of checkstyle validators
 checkstyle:
@@ -43,11 +37,11 @@ fmt:
 	gofmt -l -w -s ${GOFILES_NOVENDOR}
 
 # Builds the project for linux-based OS
-build: vendor
+build:
 	$(GO) build -o ${BINARY_DIR}/landinginfo ./landinginfo.go
 
 # Builds the project for linux-based OS
-build_docker: vendor
+build_docker:
 	CGO_ENABLED=0 GOOS=linux $(GO) build -o ${BINARY_DIR}/landinginfo ./landinginfo.go
 
 # Builds docker image
@@ -58,5 +52,5 @@ docker: build_docker
 clean:
 	if [ -d ${BINARY_DIR} ] ; then rm -r ${BINARY_DIR} ; fi
 
-release: vendor test
+release: test
 	scripts/release.sh $v
