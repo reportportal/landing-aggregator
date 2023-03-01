@@ -11,7 +11,6 @@ require (
 	github.com/go-chi/chi v4.0.2+incompatible
 	github.com/go-playground/locales v0.0.0-20170327191450-1e5f1161c641 // indirect
 	github.com/go-playground/universal-translator v0.0.0-20170327191703-71201497bace // indirect
-	github.com/golang/mock v1.2.0 // indirect
 	github.com/google/go-github/v24 v24.0.1
 	github.com/gorilla/handlers v1.4.0 // indirect
 	github.com/hashicorp/go-version v1.1.0
@@ -27,9 +26,7 @@ require (
 	google.golang.org/api v0.3.0
 	google.golang.org/appengine v1.5.0 // indirect
 	google.golang.org/genproto v0.0.0-20190401181712-f467c93bbac2 // indirect
-	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v9 v9.28.0 // indirect
 	gopkg.in/reportportal/commons-go.v5 v5.0.0-20180926120922-4d7a70b2febd
-	gopkg.in/yaml.v2 v2.2.2 // indirect
 )

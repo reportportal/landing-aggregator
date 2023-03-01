@@ -19,7 +19,7 @@ const (
 	videosListSyncPeriod = time.Hour * 2
 )
 
-//YoutubeBuffer represents buffer of videos
+// YoutubeBuffer represents buffer of videos
 type YoutubeBuffer struct {
 	youtube   *youtube.Service
 	channelID string
@@ -30,7 +30,7 @@ type YoutubeBuffer struct {
 	videosETag string
 }
 
-//VideoInfo represents video details
+// VideoInfo represents video details
 type VideoInfo struct {
 	ID          string `json:"id"`
 	Title       string `json:"title"`
@@ -39,7 +39,7 @@ type VideoInfo struct {
 	PublishedAt string `json:"published_at"`
 }
 
-//NewYoutubeVideosBuffer creates new buffer of youtube videos info
+// NewYoutubeVideosBuffer creates new buffer of youtube videos info
 func NewYoutubeVideosBuffer(channelID string, cacheSize int, keyFile []byte) (*YoutubeBuffer, error) {
 	jwtConfig, err := google.JWTConfigFromJSON(keyFile, youtube.YoutubeScope)
 	if err != nil {
@@ -65,14 +65,21 @@ func NewYoutubeVideosBuffer(channelID string, cacheSize int, keyFile []byte) (*Y
 	return buffer, nil
 }
 
-//GetAllVideos returns all videos available in the buffer
+// GetAllVideos returns all videos available in the buffer
 func (y *YoutubeBuffer) GetAllVideos() []VideoInfo {
 	return y.info.Load().([]VideoInfo)
 }
 
-//GetVideos returns slice with specified count of videos
+// GetVideos returns slice with specified count of videos
 func (y *YoutubeBuffer) GetVideos(c int) []VideoInfo {
-	return y.info.Load().([]VideoInfo)[0:c]
+	vids, ok := y.info.Load().([]VideoInfo)
+	if !ok {
+		return []VideoInfo{}
+	}
+	if len(vids) < c {
+		return vids
+	}
+	return vids[0:c]
 }
 
 func (y *YoutubeBuffer) loadVideos() {
