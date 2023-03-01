@@ -1,4 +1,4 @@
-FROM alpine:3.9
+FROM alpine:3.17
 
 MAINTAINER Andrei Varabyeu <andrei_varabyeu@epam.com>
 
