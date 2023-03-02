@@ -2,12 +2,12 @@ package info
 
 import (
 	"github.com/pkg/errors"
+	"github.com/reportportal/commons-go/v5/commons"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/googleapi"
 	"google.golang.org/api/youtube/v3"
-	"gopkg.in/reportportal/commons-go.v5/commons"
 	"strings"
 	"sync/atomic"
 	"time"

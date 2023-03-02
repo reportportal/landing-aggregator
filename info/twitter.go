@@ -3,15 +3,15 @@ package info
 import (
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
+	"github.com/reportportal/commons-go/v5/commons"
 	"github.com/reportportal/landing-aggregator/buf"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/reportportal/commons-go.v5/commons"
 	"sort"
 	"strings"
 	"time"
 )
 
-//TweetInfo represents short tweet version
+// TweetInfo represents short tweet version
 type TweetInfo struct {
 	ID               int64                   `json:"id"`
 	Text             string                  `json:"text"`
@@ -21,7 +21,7 @@ type TweetInfo struct {
 	ExtendedEntities *twitter.ExtendedEntity `json:"extended_entities,omitempty"`
 }
 
-//BufferTweets creates new synchronized auto-updating buffer of twits searched by provided hashtag
+// BufferTweets creates new synchronized auto-updating buffer of twits searched by provided hashtag
 func BufferTweets(consumerKey string,
 	consumerSecret string,
 	tokenKey string,
@@ -118,7 +118,7 @@ func streamTweets(c *twitter.Client, filter *twitter.StreamFilterParams) chan in
 	return stream.Messages
 }
 
-//loadTweets loads found tweets into buffer
+// loadTweets loads found tweets into buffer
 func loadTweets(c *twitter.Client, searchTweetParams *twitter.UserTimelineParams, buffer *buf.RingBuffer) {
 	tweets, _, err := c.Timelines.UserTimeline(searchTweetParams)
 	if nil != err {
@@ -130,7 +130,7 @@ func loadTweets(c *twitter.Client, searchTweetParams *twitter.UserTimelineParams
 	}
 }
 
-//toTweetInfo Build short tweet object
+// toTweetInfo Build short tweet object
 func toTweetInfo(tweet *twitter.Tweet) *TweetInfo {
 	t, err := time.Parse(time.RubyDate, tweet.CreatedAt)
 	if err != nil {
@@ -153,7 +153,7 @@ func toTweetInfo(tweet *twitter.Tweet) *TweetInfo {
 	}
 }
 
-//GetTweets buffered tweets sorted by date
+// GetTweets buffered tweets sorted by date
 func GetTweets(buf *buf.RingBuffer, count int) []*TweetInfo {
 	tweets := []*TweetInfo{}
 	buf.Do(func(tweet interface{}) {
