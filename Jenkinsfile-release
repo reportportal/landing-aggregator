@@ -1,0 +1,38 @@
+pipeline {
+  agent any
+
+  environment {
+    DOCKERHUB = credentials('dockerhub')  
+  }
+      
+  stages {
+
+    stage('Make') {
+      steps {
+        sh 'make checkstyle test build_docker'
+      }   
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        sh 'docker build -t reportportal/landing-aggregator:$VERSION .'
+      }  
+    }
+
+    stage('Push to regestry') {
+      steps {
+        sh '''
+        echo $DOCKERHUB_PSW | docker login -u $DOCKERHUB_USR --password-stdin
+        docker push reportportal/landing-aggregator:$VERSION
+        '''
+      }  
+    }
+
+    stage ('Cleanup') {
+      steps {
+        sh 'docker rmi reportportal/landing-aggregator:$VERSION'
+      }
+    }
+
+  }
+}
