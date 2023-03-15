@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/dghubble/sling"
-	"github.com/google/go-github/v24/github"
+	"github.com/google/go-github/v50/github"
 	"github.com/hashicorp/go-version"
+	"github.com/reportportal/commons-go/v5/commons"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
-	"gopkg.in/reportportal/commons-go.v5/commons"
 	"sort"
 	"strings"
 	"sync"
@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-//StatRange represents statistics calculation range in weeks
+// StatRange represents statistics calculation range in weeks
 type StatRange int
 
 const (
@@ -41,7 +41,7 @@ const (
 	statsRetryAttempts         int           = 5
 )
 
-//GitHubAggregator is a structure for retrieving DockerHub tags
+// GitHubAggregator is a structure for retrieving DockerHub tags
 type GitHubAggregator struct {
 	c *github.Client
 
@@ -52,19 +52,19 @@ type GitHubAggregator struct {
 	issueStats         atomic.Value
 }
 
-//ContributionStats contains aggregated info related to contribution to a organization repositories
+// ContributionStats contains aggregated info related to contribution to a organization repositories
 type ContributionStats struct {
 	Commits      map[StatRange]int `json:"commits"`
 	Contributors map[StatRange]int `json:"unique_contributors"`
 }
 
-//Stars hold total count of stars and count of stars per repo
+// Stars hold total count of stars and count of stars per repo
 type Stars struct {
 	Total int            `json:"total"`
 	Repos map[string]int `json:"repos"`
 }
 
-//IssueStats hold issues stats
+// IssueStats hold issues stats
 type IssueStats struct {
 	OpenPRs      int `json:"open_pull_requests"`
 	OpenIssues   int `json:"open_issues"`
@@ -72,7 +72,7 @@ type IssueStats struct {
 	TotalIssues  int `json:"total_issues"`
 }
 
-//NewGitHubAggregator creates new struct with default values
+// NewGitHubAggregator creates new struct with default values
 func NewGitHubAggregator(ghToken string, includeBeta bool) *GitHubAggregator {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: ghToken},
@@ -171,7 +171,7 @@ func (s *GitHubAggregator) loadUniqueContributors() {
 			for _, tr := range ranges {
 				//collect data of each contributor
 				for _, contributor := range contributors {
-					var weeklyStats []github.WeeklyStats
+					var weeklyStats []*github.WeeklyStats
 
 					if len(contributor.Weeks) > int(tr) {
 						weeklyStats = contributor.Weeks[len(contributor.Weeks)-int(tr):]
@@ -201,7 +201,7 @@ func (s *GitHubAggregator) loadUniqueContributors() {
 
 }
 
-//loadVersionsMap loads the latest tags
+// loadVersionsMap loads the latest tags
 func (s *GitHubAggregator) loadVersionsMap(includeBeta bool) {
 	log.Debugf("Updating latest versions map...")
 
@@ -246,7 +246,7 @@ func (s *GitHubAggregator) loadVersionsMap(includeBeta bool) {
 	s.latestTags.Store(versionMap)
 }
 
-//loadIssueStats loads issue statistics
+// loadIssueStats loads issue statistics
 func (s *GitHubAggregator) loadIssueStats() {
 	log.Debugf("Updating issue statistics...")
 
@@ -272,7 +272,7 @@ func (s *GitHubAggregator) loadIssueStats() {
 		TotalIssues:  issues.GetTotal() + closedIssues.GetTotal()})
 }
 
-//doWithRepos performs some action under cached repos in parallel manner
+// doWithRepos performs some action under cached repos in parallel manner
 func (s *GitHubAggregator) doWithRepos(f func(repo *github.Repository)) {
 	repos := s.repos.Load().([]*github.Repository)
 	wg := sync.WaitGroup{}
@@ -286,7 +286,7 @@ func (s *GitHubAggregator) doWithRepos(f func(repo *github.Repository)) {
 	wg.Wait()
 }
 
-//loadRepos loads repositories from GitHUB
+// loadRepos loads repositories from GitHUB
 func (s *GitHubAggregator) loadRepos() {
 	opt := &github.RepositoryListByOrgOptions{Type: "all", ListOptions: github.ListOptions{PerPage: 50}}
 
@@ -309,12 +309,12 @@ func (s *GitHubAggregator) loadRepos() {
 
 }
 
-//GetLatestTags returns copy of latest versions/tags map
+// GetLatestTags returns copy of latest versions/tags map
 func (s *GitHubAggregator) GetLatestTags() map[string]string {
 	return s.latestTags.Load().(map[string]string)
 }
 
-//GetStars returns count of stars for each repository and total count
+// GetStars returns count of stars for each repository and total count
 func (s *GitHubAggregator) GetStars() *Stars {
 	total := 0
 	repos := s.repos.Load().([]*github.Repository)
@@ -327,12 +327,12 @@ func (s *GitHubAggregator) GetStars() *Stars {
 	return &Stars{Total: total, Repos: repoStars}
 }
 
-//GetContributionStats returns aggregated contribution stats for organization repositories
+// GetContributionStats returns aggregated contribution stats for organization repositories
 func (s *GitHubAggregator) GetContributionStats() *ContributionStats {
 	return &ContributionStats{Commits: s.commitStats.Load().(map[StatRange]int), Contributors: s.uniqueContributors.Load().(map[StatRange]int)}
 }
 
-//GetIssueStats returns issues/PRs statistics
+// GetIssueStats returns issues/PRs statistics
 func (s *GitHubAggregator) GetIssueStats() *IssueStats {
 	return s.issueStats.Load().(*IssueStats)
 }

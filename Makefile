@@ -30,7 +30,7 @@ test:
 
 # executes bunch of checkstyle validators
 checkstyle:
-	gometalinter --vendor ./... --fast --disable=gas --disable=errcheck --disable=gotype #--deadline 5m
+	gometalinter --vendor ./... --fast --disable=gas --disable=errcheck --disable=gotype --deadline 5m
 
 # formats the project
 fmt:

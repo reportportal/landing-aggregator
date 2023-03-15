@@ -5,13 +5,13 @@ import (
 	"sync"
 )
 
-//RingBuffer represents synchronized ring implementation
+// RingBuffer represents synchronized ring implementation
 type RingBuffer struct {
 	r *ring.Ring
 	m *sync.RWMutex
 }
 
-//New creates new RingBuffer
+// New creates new RingBuffer
 func New(size int) *RingBuffer {
 	return &RingBuffer{
 		ring.New(size),
@@ -19,7 +19,7 @@ func New(size int) *RingBuffer {
 	}
 }
 
-//Add adds item to ring
+// Add adds item to ring
 func (buf *RingBuffer) Add(v interface{}) {
 	buf.m.Lock()
 	defer buf.m.Unlock()
@@ -27,14 +27,14 @@ func (buf *RingBuffer) Add(v interface{}) {
 	buf.r = buf.r.Next()
 }
 
-//Last returned last item added to the ring
+// Last returned last item added to the ring
 func (buf *RingBuffer) Last() interface{} {
 	buf.m.Lock()
 	defer buf.m.Unlock()
 	return buf.r.Prev().Value
 }
 
-//Do executes provided callback on all non-nil items of a ring
+// Do executes provided callback on all non-nil items of a ring
 func (buf *RingBuffer) Do(f func(interface{})) {
 	buf.m.RLock()
 

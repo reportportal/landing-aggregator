@@ -16,7 +16,7 @@ const (
 	hubRepoTagsTemplate = "/v1/repositories/%s/tags"
 )
 
-//DHubTags is a structure for retrieving DockerHub tags
+// DHubTags is a structure for retrieving DockerHub tags
 type DHubTags struct {
 	repoLatest  map[string]string
 	includeBeta bool
@@ -24,7 +24,7 @@ type DHubTags struct {
 	client      *sling.Sling
 }
 
-//NewDockerHubTags creates new struct with default values
+// NewDockerHubTags creates new struct with default values
 func NewDockerHubTags(includeBeta bool) *DHubTags {
 	versions := &DHubTags{
 		mu: &sync.RWMutex{},
@@ -48,7 +48,7 @@ func NewDockerHubTags(includeBeta bool) *DHubTags {
 	return versions
 }
 
-//Do executes provided callback on latest versions/tags map
+// Do executes provided callback on latest versions/tags map
 func (v *DHubTags) Do(f func(map[string]string)) {
 	v.mu.RLock()
 	defer v.mu.RUnlock()
