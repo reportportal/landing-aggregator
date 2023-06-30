@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	defaultTwitterRSCount = 3
+	// defaultTwitterRSCount = 3
 	defaultYoutubeRSCount = 3
 )
 
@@ -77,15 +77,15 @@ func main() {
 		jsonRS(http.StatusOK, buildInfo, w)
 	}))
 
-	router.Get("/twitter", func(w http.ResponseWriter, rq *http.Request) {
-		count := getQueryIntParam(rq, "count", defaultTwitterRSCount)
-		if count > conf.BufferSize {
-			jsonpRS(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("provided count exceed max allower value (%d)", conf.BufferSize)}, w, rq)
-			return
-		}
-		jsonpRS(http.StatusOK, info.GetTweets(twitsBuffer, count), w, rq)
+	// router.Get("/twitter", func(w http.ResponseWriter, rq *http.Request) {
+	// 	count := getQueryIntParam(rq, "count", defaultTwitterRSCount)
+	// 	if count > conf.BufferSize {
+	// 		jsonpRS(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("provided count exceed max allower value (%d)", conf.BufferSize)}, w, rq)
+	// 		return
+	// 	}
+	// 	jsonpRS(http.StatusOK, info.GetTweets(twitsBuffer, count), w, rq)
 
-	})
+	// })
 
 	router.Get("/youtube", func(w http.ResponseWriter, rq *http.Request) {
 		count := getQueryIntParam(rq, "count", defaultYoutubeRSCount)
@@ -117,7 +117,7 @@ func main() {
 	router.Get("/", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
 		rs := map[string]interface{}{}
 		rs["latest_versions"] = ghAggr.GetLatestTags()
-		rs["tweets"] = info.GetTweets(twitsBuffer, defaultTwitterRSCount)
+		// rs["tweets"] = info.GetTweets(twitsBuffer, defaultTwitterRSCount)
 		rs["youtube"] = youtubeBuffer.GetVideos(defaultYoutubeRSCount)
 		rs["build"] = buildInfo
 
@@ -202,12 +202,12 @@ func getQueryIntParam(rq *http.Request, name string, def int) int {
 
 type config struct {
 	Port           int    `env:"PORT" envDefault:"8080"`
-	ConsumerKey    string `env:"TWITTER_CONSUMER,required"`
-	ConsumerSecret string `env:"TWITTER_CONSUMER_SECRET,required"`
-	Token          string `env:"TWITTER_TOKEN,required"`
-	TokenSecret    string `env:"TWITTER_TOKEN_SECRET,required"`
-	BufferSize     int    `env:"TWITTER_BUFFER_SIZE" envDefault:"10"`
-	SearchTerm     string `env:"TWITTER_SEARCH_TERM" envDefault:"@reportportal_io"`
+	// ConsumerKey    string `env:"TWITTER_CONSUMER,required"`
+	// ConsumerSecret string `env:"TWITTER_CONSUMER_SECRET,required"`
+	// Token          string `env:"TWITTER_TOKEN,required"`
+	// TokenSecret    string `env:"TWITTER_TOKEN_SECRET,required"`
+	// BufferSize     int    `env:"TWITTER_BUFFER_SIZE" envDefault:"10"`
+	// SearchTerm     string `env:"TWITTER_SEARCH_TERM" envDefault:"@reportportal_io"`
 	IncludeBeta    bool   `env:"GITHUB_INCLUDE_BETA" envDefault:"false"`
 	GitHubToken    string `env:"GITHUB_TOKEN" envDefault:"false"`
 
