@@ -1,6 +1,6 @@
-FROM alpine:3.17
+FROM alpine:3.18.2
 
-MAINTAINER Andrei Varabyeu <andrei_varabyeu@epam.com>
+# MAINTAINER Andrei Varabyeu <andrei_varabyeu@epam.com>
 
 RUN apk --no-cache add ca-certificates
 
