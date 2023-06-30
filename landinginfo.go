@@ -56,7 +56,7 @@ func main() {
 		Branch:    Branch,
 		BuildDate: BuildDate,
 	}
-	twitsBuffer := info.BufferTweets(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.SearchTerm, conf.BufferSize)
+	// twitsBuffer := info.BufferTweets(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.SearchTerm, conf.BufferSize)
 	ghAggr := info.NewGitHubAggregator(conf.GitHubToken, conf.IncludeBeta)
 
 	youtubeBuffer, err := buildYoutubeBuffer(conf)
@@ -206,7 +206,7 @@ type config struct {
 	// ConsumerSecret string `env:"TWITTER_CONSUMER_SECRET,required"`
 	// Token          string `env:"TWITTER_TOKEN,required"`
 	// TokenSecret    string `env:"TWITTER_TOKEN_SECRET,required"`
-	// BufferSize     int    `env:"TWITTER_BUFFER_SIZE" envDefault:"10"`
+	BufferSize     int    `env:"TWITTER_BUFFER_SIZE" envDefault:"10"`
 	// SearchTerm     string `env:"TWITTER_SEARCH_TERM" envDefault:"@reportportal_io"`
 	IncludeBeta    bool   `env:"GITHUB_INCLUDE_BETA" envDefault:"false"`
 	GitHubToken    string `env:"GITHUB_TOKEN" envDefault:"false"`
