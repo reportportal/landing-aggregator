@@ -4,15 +4,17 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"net/http"
+	"os"
+	"strconv"
+
 	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi"
 	"github.com/reportportal/commons-go/v5/commons"
 	"github.com/reportportal/commons-go/v5/server"
+	"github.com/reportportal/landing-aggregator/buf"
 	"github.com/reportportal/landing-aggregator/info"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"os"
-	"strconv"
 )
 
 const (
@@ -56,12 +58,40 @@ func main() {
 		Branch:    Branch,
 		BuildDate: BuildDate,
 	}
-	twitsBuffer := info.BufferTweets(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.SearchTerm, conf.BufferSize)
-	ghAggr := info.NewGitHubAggregator(conf.GitHubToken, conf.IncludeBeta)
 
-	youtubeBuffer, err := buildYoutubeBuffer(conf)
-	if err != nil {
-		log.Fatalf("Cannot init youtube buffer. %s", err)
+	twitterVariableNames := []string{
+		"TWITTER_CONSUMER",
+		"TWITTER_CONSUMER_SECRET",
+		"TWITTER_TOKEN",
+		"TWITTER_TOKEN_SECRET",
+	}
+
+	var twitsBuffer *buf.RingBuffer
+	for _, name := range twitterVariableNames {
+		value := os.Getenv(name)
+		if value == "" {
+			log.Error("Environment variable ", name, " not set")
+		} else {
+			twitsBuffer = info.BufferTweets(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.SearchTerm, conf.BufferSize)
+		}
+	}
+
+	var ghAggr *info.GitHubAggregator
+	if conf.GitHubToken == "false" {
+		log.Error("Environment variable GITHUB_TOKEN not set.")
+	} else {
+		ghAggr = info.NewGitHubAggregator(conf.GitHubToken, conf.IncludeBeta)
+	}
+
+	var youtubeBuffer *info.YoutubeBuffer
+	var err error
+	if conf.YoutubeChannelID == "false" {
+		log.Error("Environment variable YOUTUBE_CHANNEL_ID not set")
+	} else {
+		youtubeBuffer, err = buildYoutubeBuffer(conf)
+		if err != nil {
+			log.Fatalf("Cannot init youtube buffer. %s", err)
+		}
 	}
 
 	router := chi.NewMux()
@@ -202,10 +232,10 @@ func getQueryIntParam(rq *http.Request, name string, def int) int {
 
 type config struct {
 	Port           int    `env:"PORT" envDefault:"8080"`
-	ConsumerKey    string `env:"TWITTER_CONSUMER,required"`
-	ConsumerSecret string `env:"TWITTER_CONSUMER_SECRET,required"`
-	Token          string `env:"TWITTER_TOKEN,required"`
-	TokenSecret    string `env:"TWITTER_TOKEN_SECRET,required"`
+	ConsumerKey    string `env:"TWITTER_CONSUMER" envDefault:"false"`
+	ConsumerSecret string `env:"TWITTER_CONSUMER_SECRET" envDefault:"false"`
+	Token          string `env:"TWITTER_TOKEN" envDefault:"false"`
+	TokenSecret    string `env:"TWITTER_TOKEN_SECRET" envDefault:"false"`
 	BufferSize     int    `env:"TWITTER_BUFFER_SIZE" envDefault:"10"`
 	SearchTerm     string `env:"TWITTER_SEARCH_TERM" envDefault:"@reportportal_io"`
 	IncludeBeta    bool   `env:"GITHUB_INCLUDE_BETA" envDefault:"false"`
@@ -213,7 +243,7 @@ type config struct {
 
 	GoogleAPIKeyFile  string `env:"GOOGLE_API_KEY" envDefault:"false"`
 	YoutubeBufferSize int    `env:"YOUTUBE_BUFFER_SIZE" envDefault:"10"`
-	YoutubeChannelID  string `env:"YOUTUBE_CHANNEL_ID,required"`
+	YoutubeChannelID  string `env:"YOUTUBE_CHANNEL_ID" envDefault:"false"`
 }
 
 var notFoundMiddleware = func(w http.ResponseWriter, rq *http.Request) {
