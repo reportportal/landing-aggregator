@@ -69,7 +69,7 @@ func main() {
 
 	var youtubeBuffer *info.YoutubeBuffer
 	var err error
-	if conf.YoutubeChannelID == "false" {
+	if conf.YoutubeChannelID == "" {
 		log.Error("Environment variable YOUTUBE_CHANNEL_ID not set")
 	} else {
 		youtubeBuffer, err = buildYoutubeBuffer(conf)
