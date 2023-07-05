@@ -58,7 +58,7 @@ func main() {
 		BuildDate: BuildDate,
 	}
 
-	cma := info.InitCma(conf.CmaSpaceId, conf.CmaToken)
+	cma := info.InitCma(conf.CmaSpaceId, conf.CmaToken, conf.CmaLimit)
 
 	var ghAggr *info.GitHubAggregator
 	if conf.GitHubToken == "false" {
@@ -222,6 +222,7 @@ type config struct {
 
 	CmaToken   string `env:"CONTENTFUL_TOKEN"`
 	CmaSpaceId string `env:"CONTENTFUL_SPACE_ID" envDefault:"g69ur67f2wcc"`
+	CmaLimit   int    `env:"CONTENTFUL_LIMIT" envDefault:"15"`
 }
 
 var notFoundMiddleware = func(w http.ResponseWriter, rq *http.Request) {

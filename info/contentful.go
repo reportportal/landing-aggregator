@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/patrickmn/go-cache"
@@ -13,24 +14,26 @@ import (
 type CmaClient struct {
 	Token   string
 	SpaceId string
+	Limit   int
 }
 
 type NewsInfo struct {
 	Text string `json:"text"`
 }
 
-var contentfulCache = cache.New(5*time.Minute, 10*time.Minute)
+var localCache = cache.New(2*time.Minute, 5*time.Minute)
 
-func InitCma(spaceId string, token string) *CmaClient {
+func InitCma(spaceId string, token string, limit int) *CmaClient {
 	cma := &CmaClient{
 		Token:   token,
 		SpaceId: spaceId,
+		Limit:   limit,
 	}
 	return cma
 }
 
-func fetchEntryFromContentful(contentType string, spaceId string, token string) []byte {
-	url := fmt.Sprintf("https://cdn.contentful.com/spaces/%s/entries?select=fields&content_type=%s", spaceId, contentType)
+func FetchEntriesFromContentful(contentType string, spaceId string, token string, limit string) []byte {
+	url := fmt.Sprintf("https://cdn.contentful.com/spaces/%s/entries?select=fields&content_type=%s&limit=%s", spaceId, contentType, limit)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		fmt.Printf("Error creating request: %v\n", err)
@@ -59,42 +62,49 @@ func fetchEntryFromContentful(contentType string, spaceId string, token string) 
 		return nil
 	}
 
+	// Debugging info
 	// fmt.Printf("\n%s\n", body)
 
 	return body
 }
 
-func GetEnteriesFromCache(contentType string, spaceId string, token string) []byte {
-
-	cacheKey := contentType + spaceId
-
-	if cachedEntry, found := contentfulCache.Get(cacheKey); found {
-		// Entry found in the cache, use it
-		entry := cachedEntry.([]byte)
-
-		// fmt.Printf("Entry fetched from local cache: \n%s\n", entry)
-
-		return entry
-	} else {
-		// Entry not found in the cache, fetch it from Contentful
-		entry := fetchEntryFromContentful(contentType, spaceId, token)
-
-		// Store the fetched entry in the cache
-		contentfulCache.Set(cacheKey, entry, cache.DefaultExpiration)
-
-		// fmt.Printf("Entry fetched from Contentful: \n%s\n", entry)
-
-		return entry
-	}
-
-}
-
 func GetNewsFeed(cma *CmaClient) []NewsInfo {
 	contentType := "newsFeed"
-	body := GetEnteriesFromCache(contentType, cma.SpaceId, cma.Token)
+	cacheKey := contentType + cma.SpaceId
+
+	if cachedEntry, found := localCache.Get(cacheKey); found {
+		// Entry found in the cache, use it
+		newsFeed := cachedEntry.([]NewsInfo)
+
+		// Debugging info
+		// fmt.Printf("\nEntry fetched from local cache: \n%s\n", newsFeed)
+
+		return newsFeed
+	} else {
+		// Entry not found in the cache, fetch it from Contentful
+		body := FetchEntriesFromContentful(contentType, cma.SpaceId, cma.Token, strconv.Itoa(cma.Limit))
+
+		// Map the fetched entry to a NewsFeed struct
+		newsFeed := mapEntriesToNewsFeed(body)
+
+		// Store the fetched entry in the cache
+		localCache.Set(cacheKey, newsFeed, cache.DefaultExpiration)
+
+		// Debugging info
+		// fmt.Printf("\nEntry fetched from Contentful: \n%s\n", newsFeed)
+
+		return newsFeed
+	}
+}
+
+func mapEntriesToNewsFeed(entry []byte) []NewsInfo {
+	if entry == nil {
+		fmt.Println("Error decoding JSON: response has empty body")
+		return nil
+	}
 
 	var jsonData map[string]interface{}
-	decodingErr := json.Unmarshal(body, &jsonData)
+	decodingErr := json.Unmarshal(entry, &jsonData)
 	if decodingErr != nil {
 		fmt.Printf("Error decoding JSON: %v\n", decodingErr)
 		return nil
