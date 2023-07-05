@@ -58,7 +58,7 @@ func main() {
 		BuildDate: BuildDate,
 	}
 
-	cma := info.NewCma(conf.CmaSpaceId, conf.CmaToken, conf.CmaLimit)
+	cma := info.NewCma(conf.CmaSpaceId, conf.CmaToken)
 
 	var ghAggr *info.GitHubAggregator
 	if conf.GitHubToken == "false" {
@@ -92,7 +92,12 @@ func main() {
 	}))
 
 	router.Get("/twitter", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
-		jsonRS(http.StatusOK, info.GetNewsFeed(cma), w)
+		count := getQueryIntParam(rq, "count", conf.CmaLimit)
+		if count > conf.CmaLimit {
+			jsonpRS(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("provided count exceed max allower value (%d)", conf.CmaLimit)}, w, rq)
+			return
+		}
+		jsonpRS(http.StatusOK, info.GetNewsFeed(cma, count), w, rq)
 	}))
 
 	router.Get("/youtube", func(w http.ResponseWriter, rq *http.Request) {
@@ -126,7 +131,7 @@ func main() {
 		rs := map[string]interface{}{}
 
 		rs["build"] = buildInfo
-		rs["tweets"] = info.GetNewsFeed(cma)
+		rs["tweets"] = info.GetNewsFeed(cma, defaultTwitterRSCount)
 		rs["youtube"] = youtubeBuffer.GetVideos(defaultYoutubeRSCount)
 
 		ghStats := map[string]interface{}{
@@ -221,8 +226,8 @@ type config struct {
 	YoutubeChannelID  string `env:"YOUTUBE_CHANNEL_ID"`
 
 	CmaToken   string `env:"CONTENTFUL_TOKEN"`
-	CmaSpaceId string `env:"CONTENTFUL_SPACE_ID" envDefault:"g69ur67f2wcc"`
-	CmaLimit   int    `env:"CONTENTFUL_LIMIT" envDefault:"15"`
+	CmaSpaceId string `env:"CONTENTFUL_SPACE_ID" envDefault:"1n1nntnzoxp4"`
+	CmaLimit   int    `env:"CONTENTFUL_LIMIT" envDefault:"10"`
 }
 
 var notFoundMiddleware = func(w http.ResponseWriter, rq *http.Request) {

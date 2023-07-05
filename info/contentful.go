@@ -18,16 +18,24 @@ type CmaClient struct {
 }
 
 type NewsInfo struct {
+	Text     string    `json:"text"`
+	Entities *Entities `json:"entities,omitempty"`
+}
+
+type Entities struct {
+	Hashtags []HashtagEntity `json:"hashtags"`
+}
+
+type HashtagEntity struct {
 	Text string `json:"text"`
 }
 
 var localCache = cache.New(2*time.Minute, 5*time.Minute)
 
-func NewCma(spaceId string, token string, limit int) *CmaClient {
+func NewCma(spaceId string, token string) *CmaClient {
 	cma := &CmaClient{
 		Token:   token,
 		SpaceId: spaceId,
-		Limit:   limit,
 	}
 	return cma
 }
@@ -68,13 +76,13 @@ func FetchEntriesFromContentful(contentType string, spaceId string, token string
 	return body
 }
 
-func GetNewsFeed(cma *CmaClient) []NewsInfo {
+func GetNewsFeed(cma *CmaClient, count int) []*NewsInfo {
 	contentType := "newsFeed"
 	cacheKey := contentType + cma.SpaceId
 
 	if cachedEntry, found := localCache.Get(cacheKey); found {
 		// Entry found in the cache, use it
-		newsFeed := cachedEntry.([]NewsInfo)
+		newsFeed := cachedEntry.([]*NewsInfo)
 
 		// Debugging info
 		// fmt.Printf("\nEntry fetched from local cache: \n%s\n", newsFeed)
@@ -82,7 +90,7 @@ func GetNewsFeed(cma *CmaClient) []NewsInfo {
 		return newsFeed
 	} else {
 		// Entry not found in the cache, fetch it from Contentful
-		body := FetchEntriesFromContentful(contentType, cma.SpaceId, cma.Token, strconv.Itoa(cma.Limit))
+		body := FetchEntriesFromContentful(contentType, cma.SpaceId, cma.Token, strconv.Itoa(count))
 
 		// Map the fetched entry to a NewsFeed struct
 		newsFeed := mapEntriesToNewsFeed(body)
@@ -97,7 +105,7 @@ func GetNewsFeed(cma *CmaClient) []NewsInfo {
 	}
 }
 
-func mapEntriesToNewsFeed(entry []byte) []NewsInfo {
+func mapEntriesToNewsFeed(entry []byte) []*NewsInfo {
 	if entry == nil {
 		fmt.Println("Error decoding JSON: response has empty body")
 		return nil
@@ -116,7 +124,7 @@ func mapEntriesToNewsFeed(entry []byte) []NewsInfo {
 		return nil
 	}
 
-	var newsFeed []NewsInfo
+	var newsFeed []*NewsInfo
 	for _, item := range items {
 		itemData, ok := item.(map[string]interface{})
 		if !ok {
@@ -133,8 +141,9 @@ func mapEntriesToNewsFeed(entry []byte) []NewsInfo {
 			continue
 		}
 
-		newsFeed = append(newsFeed, NewsInfo{
-			Text: text,
+		newsFeed = append(newsFeed, &NewsInfo{
+			Text:     text,
+			Entities: &Entities{},
 		})
 	}
 
