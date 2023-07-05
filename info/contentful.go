@@ -23,7 +23,7 @@ type NewsInfo struct {
 
 var localCache = cache.New(2*time.Minute, 5*time.Minute)
 
-func InitCma(spaceId string, token string, limit int) *CmaClient {
+func NewCma(spaceId string, token string, limit int) *CmaClient {
 	cma := &CmaClient{
 		Token:   token,
 		SpaceId: spaceId,

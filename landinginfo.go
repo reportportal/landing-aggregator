@@ -58,7 +58,7 @@ func main() {
 		BuildDate: BuildDate,
 	}
 
-	cma := info.InitCma(conf.CmaSpaceId, conf.CmaToken, conf.CmaLimit)
+	cma := info.NewCma(conf.CmaSpaceId, conf.CmaToken, conf.CmaLimit)
 
 	var ghAggr *info.GitHubAggregator
 	if conf.GitHubToken == "false" {
