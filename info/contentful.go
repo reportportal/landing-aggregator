@@ -14,6 +14,7 @@ import (
 type CmaClient struct {
 	Token   string
 	SpaceId string
+	Limit   int
 }
 
 type NewsInfo struct {
