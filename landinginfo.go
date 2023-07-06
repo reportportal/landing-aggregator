@@ -4,15 +4,16 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"net/http"
+	"os"
+	"strconv"
+
 	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi"
 	"github.com/reportportal/commons-go/v5/commons"
 	"github.com/reportportal/commons-go/v5/server"
 	"github.com/reportportal/landing-aggregator/info"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"os"
-	"strconv"
 )
 
 const (
@@ -56,12 +57,25 @@ func main() {
 		Branch:    Branch,
 		BuildDate: BuildDate,
 	}
-	twitsBuffer := info.BufferTweets(conf.ConsumerKey, conf.ConsumerSecret, conf.Token, conf.TokenSecret, conf.SearchTerm, conf.BufferSize)
-	ghAggr := info.NewGitHubAggregator(conf.GitHubToken, conf.IncludeBeta)
 
-	youtubeBuffer, err := buildYoutubeBuffer(conf)
-	if err != nil {
-		log.Fatalf("Cannot init youtube buffer. %s", err)
+	cma := info.NewCma(conf.CmaSpaceId, conf.CmaToken, conf.CmaLimit)
+
+	var ghAggr *info.GitHubAggregator
+	if conf.GitHubToken == "false" {
+		log.Error("Environment variable GITHUB_TOKEN not set.")
+	} else {
+		ghAggr = info.NewGitHubAggregator(conf.GitHubToken, conf.IncludeBeta)
+	}
+
+	var youtubeBuffer *info.YoutubeBuffer
+	var err error
+	if conf.YoutubeChannelID == "" {
+		log.Error("Environment variable YOUTUBE_CHANNEL_ID not set")
+	} else {
+		youtubeBuffer, err = buildYoutubeBuffer(conf)
+		if err != nil {
+			log.Error("Cannot init youtube buffer. ", err)
+		}
 	}
 
 	router := chi.NewMux()
@@ -77,20 +91,19 @@ func main() {
 		jsonRS(http.StatusOK, buildInfo, w)
 	}))
 
-	router.Get("/twitter", func(w http.ResponseWriter, rq *http.Request) {
-		count := getQueryIntParam(rq, "count", defaultTwitterRSCount)
-		if count > conf.BufferSize {
-			jsonpRS(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("provided count exceed max allower value (%d)", conf.BufferSize)}, w, rq)
+	router.Get("/twitter", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+		count := getQueryIntParam(rq, "count", conf.CmaLimit)
+		if count > conf.CmaLimit {
+			jsonpRS(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("provided count exceed max allower value (%d)", conf.CmaLimit)}, w, rq)
 			return
 		}
-		jsonpRS(http.StatusOK, info.GetTweets(twitsBuffer, count), w, rq)
-
-	})
+		jsonpRS(http.StatusOK, info.GetTwitterFeed(cma, count), w, rq)
+	}))
 
 	router.Get("/youtube", func(w http.ResponseWriter, rq *http.Request) {
 		count := getQueryIntParam(rq, "count", defaultYoutubeRSCount)
 		if count > conf.YoutubeBufferSize {
-			jsonpRS(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("provided count exceed max allower value (%d)", conf.BufferSize)}, w, rq)
+			jsonpRS(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("provided count exceed max allower value (%d)", conf.YoutubeBufferSize)}, w, rq)
 			return
 		}
 		jsonpRS(http.StatusOK, youtubeBuffer.GetVideos(count), w, rq)
@@ -113,13 +126,13 @@ func main() {
 		}))
 	})
 
-	//aggregate everything into on rs
+	// aggregate everything into on rs
 	router.Get("/", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
 		rs := map[string]interface{}{}
-		rs["latest_versions"] = ghAggr.GetLatestTags()
-		rs["tweets"] = info.GetTweets(twitsBuffer, defaultTwitterRSCount)
-		rs["youtube"] = youtubeBuffer.GetVideos(defaultYoutubeRSCount)
+
 		rs["build"] = buildInfo
+		rs["tweets"] = info.GetTwitterFeed(cma, conf.CmaLimit)
+		rs["youtube"] = youtubeBuffer.GetVideos(defaultYoutubeRSCount)
 
 		ghStats := map[string]interface{}{
 			"stars":              ghAggr.GetStars(),
@@ -127,6 +140,7 @@ func main() {
 			"issue_stats":        ghAggr.GetIssueStats(),
 		}
 		rs["github"] = ghStats
+		rs["latest_versions"] = ghAggr.GetLatestTags()
 
 		jsonRS(http.StatusOK, rs, w)
 	}))
@@ -201,19 +215,19 @@ func getQueryIntParam(rq *http.Request, name string, def int) int {
 }
 
 type config struct {
-	Port           int    `env:"PORT" envDefault:"8080"`
-	ConsumerKey    string `env:"TWITTER_CONSUMER,required"`
-	ConsumerSecret string `env:"TWITTER_CONSUMER_SECRET,required"`
-	Token          string `env:"TWITTER_TOKEN,required"`
-	TokenSecret    string `env:"TWITTER_TOKEN_SECRET,required"`
-	BufferSize     int    `env:"TWITTER_BUFFER_SIZE" envDefault:"10"`
-	SearchTerm     string `env:"TWITTER_SEARCH_TERM" envDefault:"@reportportal_io"`
-	IncludeBeta    bool   `env:"GITHUB_INCLUDE_BETA" envDefault:"false"`
-	GitHubToken    string `env:"GITHUB_TOKEN" envDefault:"false"`
+	Port int `env:"PORT" envDefault:"8080"`
 
-	GoogleAPIKeyFile  string `env:"GOOGLE_API_KEY" envDefault:"false"`
+	IncludeBeta bool   `env:"GITHUB_INCLUDE_BETA" envDefault:"false"`
+	GitHubToken string `env:"GITHUB_TOKEN" envDefault:"false"`
+
+	GoogleAPIKeyFile string `env:"GOOGLE_API_KEY" envDefault:"false"`
+
 	YoutubeBufferSize int    `env:"YOUTUBE_BUFFER_SIZE" envDefault:"10"`
-	YoutubeChannelID  string `env:"YOUTUBE_CHANNEL_ID,required"`
+	YoutubeChannelID  string `env:"YOUTUBE_CHANNEL_ID"`
+
+	CmaToken   string `env:"CONTENTFUL_TOKEN"`
+	CmaSpaceId string `env:"CONTENTFUL_SPACE_ID" envDefault:"1n1nntnzoxp4"`
+	CmaLimit   int    `env:"CONTENTFUL_LIMIT" envDefault:"15"`
 }
 
 var notFoundMiddleware = func(w http.ResponseWriter, rq *http.Request) {
