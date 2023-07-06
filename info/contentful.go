@@ -17,25 +17,27 @@ type CmaClient struct {
 	Limit   int
 }
 
-type NewsInfo struct {
-	Text     string    `json:"text"`
-	Entities *Entities `json:"entities,omitempty"`
+type NewsFeed struct {
+	Items []struct {
+		Fields struct {
+			Text     string   `json:"text"`
+			Hashtags []string `json:"hashtags"`
+		} `json:"fields"`
+	} `json:"items"`
 }
 
-type Entities struct {
-	Hashtags []HashtagEntity `json:"hashtags"`
-}
-
-type HashtagEntity struct {
-	Text string `json:"text"`
+type TwitterInfo struct {
+	Text     string   `json:"text"`
+	Entities struct{} `json:"entities"`
 }
 
 var localCache = cache.New(2*time.Minute, 5*time.Minute)
 
-func NewCma(spaceId string, token string) *CmaClient {
+func NewCma(spaceId string, token string, limit int) *CmaClient {
 	cma := &CmaClient{
 		Token:   token,
 		SpaceId: spaceId,
+		Limit:   limit,
 	}
 	return cma
 }
@@ -76,76 +78,69 @@ func FetchEntriesFromContentful(contentType string, spaceId string, token string
 	return body
 }
 
-func GetNewsFeed(cma *CmaClient, count int) []*NewsInfo {
-	contentType := "newsFeed"
-	cacheKey := contentType + cma.SpaceId
-
-	if cachedEntry, found := localCache.Get(cacheKey); found {
-		// Entry found in the cache, use it
-		newsFeed := cachedEntry.([]*NewsInfo)
-
-		// Debugging info
-		// fmt.Printf("\nEntry fetched from local cache: \n%s\n", newsFeed)
-
-		return newsFeed
-	} else {
-		// Entry not found in the cache, fetch it from Contentful
-		body := FetchEntriesFromContentful(contentType, cma.SpaceId, cma.Token, strconv.Itoa(count))
-
-		// Map the fetched entry to a NewsFeed struct
-		newsFeed := mapEntriesToNewsFeed(body)
-
-		// Store the fetched entry in the cache
-		localCache.Set(cacheKey, newsFeed, cache.DefaultExpiration)
-
-		// Debugging info
-		// fmt.Printf("\nEntry fetched from Contentful: \n%s\n", newsFeed)
-
-		return newsFeed
-	}
-}
-
-func mapEntriesToNewsFeed(entry []byte) []*NewsInfo {
+func mapEntriesToTwitterFeed(entry []byte) []*TwitterInfo {
 	if entry == nil {
 		fmt.Println("Error decoding JSON: response has empty body")
 		return nil
 	}
 
-	var jsonData map[string]interface{}
-	decodingErr := json.Unmarshal(entry, &jsonData)
-	if decodingErr != nil {
-		fmt.Printf("Error decoding JSON: %v\n", decodingErr)
+	var newsFeed NewsFeed
+	err := json.Unmarshal(entry, &newsFeed)
+	if err != nil {
+		fmt.Println("Error:", err)
 		return nil
 	}
 
-	items, ok := jsonData["items"].([]interface{})
-	if !ok {
-		fmt.Println("No items found")
-		return nil
+	var tweets []*TwitterInfo
+
+	// Map the fields to the Twitter structure
+	for _, item := range newsFeed.Items {
+
+		tweet := &TwitterInfo{
+			Text:     item.Fields.Text,
+			Entities: struct{}{},
+		}
+
+		tweets = append(tweets, tweet)
 	}
 
-	var newsFeed []*NewsInfo
-	for _, item := range items {
-		itemData, ok := item.(map[string]interface{})
-		if !ok {
-			continue
+	return tweets
+}
+
+func GetTwitterFeed(cma *CmaClient, count int) []*TwitterInfo {
+	contentType := "newsFeed"
+	cacheKey := contentType + cma.SpaceId
+
+	if cachedEntry, found := localCache.Get(cacheKey); found {
+		// Entry found in the cache, use it
+		entry := cachedEntry.([]*TwitterInfo)
+
+		// Debugging info
+		// fmt.Printf("\nEntry fetched from local cache: \n%s\n", newsFeed)
+
+		if count >= len(entry) {
+			return entry
+		} else {
+			return entry[0:count]
 		}
 
-		fieldsData, ok := itemData["fields"].(map[string]interface{})
-		if !ok {
-			continue
-		}
+	} else {
+		// Entry not found in the cache, fetch it from Contentful
+		body := FetchEntriesFromContentful(contentType, cma.SpaceId, cma.Token, strconv.Itoa(cma.Limit))
 
-		text, ok := fieldsData["text"].(string)
-		if !ok {
-			continue
-		}
+		// Map the fetched entry to a NewsFeed struct
+		tweets := mapEntriesToTwitterFeed(body)
 
-		newsFeed = append(newsFeed, &NewsInfo{
-			Text:     text,
-			Entities: &Entities{},
-		})
+		// Store the fetched entry in the cache
+		localCache.Set(cacheKey, tweets, cache.DefaultExpiration)
+
+		// Debugging info
+		// fmt.Printf("\nEntry fetched from Contentful: \n%s\n", newsFeed)
+
+		if count >= len(tweets) {
+			return tweets
+		} else {
+			return tweets[0:count]
+		}
 	}
-
-	return newsFeed
 }
