@@ -225,7 +225,7 @@ type config struct {
 	YoutubeBufferSize int    `env:"YOUTUBE_BUFFER_SIZE" envDefault:"10"`
 	YoutubeChannelID  string `env:"YOUTUBE_CHANNEL_ID"`
 
-	CmaToken   string `env:"CONTENTFUL_TOKEN" envDefault:"xykk0ccCyMEWz6RshYaKSnGpHHB7PaG5RjoolTIiobo"`
+	CmaToken   string `env:"CONTENTFUL_TOKEN"`
 	CmaSpaceId string `env:"CONTENTFUL_SPACE_ID" envDefault:"1n1nntnzoxp4"`
 	CmaLimit   int    `env:"CONTENTFUL_LIMIT" envDefault:"15"`
 }
