@@ -58,7 +58,7 @@ func main() {
 		BuildDate: BuildDate,
 	}
 
-	cma := info.NewCma(conf.CmaSpaceId, conf.CmaToken, conf.CmaLimit)
+	cma := info.NewCma(conf.CmaSpaceID, conf.CmaToken, conf.CmaLimit)
 
 	var ghAggr *info.GitHubAggregator
 	if conf.GitHubToken == "false" {
@@ -226,7 +226,7 @@ type config struct {
 	YoutubeChannelID  string `env:"YOUTUBE_CHANNEL_ID"`
 
 	CmaToken   string `env:"CONTENTFUL_TOKEN"`
-	CmaSpaceId string `env:"CONTENTFUL_SPACE_ID" envDefault:"1n1nntnzoxp4"`
+	CmaSpaceID string `env:"CONTENTFUL_SPACE_ID" envDefault:"1n1nntnzoxp4"`
 	CmaLimit   int    `env:"CONTENTFUL_LIMIT" envDefault:"15"`
 }
 

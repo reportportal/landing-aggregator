@@ -11,12 +11,14 @@ import (
 	"github.com/patrickmn/go-cache"
 )
 
+// CmaClient is a client for Contentful Management API
 type CmaClient struct {
 	Token   string
-	SpaceId string
+	SpaceID string
 	Limit   int
 }
 
+// NewsFeed is a struct for the Contentful News Feed
 type NewsFeed struct {
 	Items []struct {
 		Fields struct {
@@ -26,6 +28,7 @@ type NewsFeed struct {
 	} `json:"items"`
 }
 
+// TwitterInfo is a struct for mapping the News Feed to Twitter
 type TwitterInfo struct {
 	Text     string   `json:"text"`
 	Entities struct{} `json:"entities"`
@@ -33,17 +36,19 @@ type TwitterInfo struct {
 
 var localCache = cache.New(2*time.Minute, 5*time.Minute)
 
-func NewCma(spaceId string, token string, limit int) *CmaClient {
+// NewCma creates a new CmaClient
+func NewCma(spaceID string, token string, limit int) *CmaClient {
 	cma := &CmaClient{
 		Token:   token,
-		SpaceId: spaceId,
+		SpaceID: spaceID,
 		Limit:   limit,
 	}
 	return cma
 }
 
-func FetchEntriesFromContentful(contentType string, spaceId string, token string, limit string) []byte {
-	url := fmt.Sprintf("https://cdn.contentful.com/spaces/%s/entries?select=fields&content_type=%s&limit=%s", spaceId, contentType, limit)
+// FetchEntriesFromContentful fetches entries from Contentful
+func FetchEntriesFromContentful(contentType string, spaceID string, token string, limit string) []byte {
+	url := fmt.Sprintf("https://cdn.contentful.com/spaces/%s/entries?select=fields&content_type=%s&limit=%s", spaceID, contentType, limit)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		fmt.Printf("Error creating request: %v\n", err)
@@ -53,9 +58,9 @@ func FetchEntriesFromContentful(contentType string, spaceId string, token string
 	if token == "" {
 		fmt.Printf("Error sending request: Environment variable CONTENTFUL_TOKEN not set.\n")
 		return nil
-	} else {
-		req.Header.Add("Authorization", "Bearer "+token)
 	}
+
+	req.Header.Add("Authorization", "Bearer "+token)
 
 	client := &http.Client{}
 
@@ -107,9 +112,10 @@ func mapEntriesToTwitterFeed(entry []byte) []*TwitterInfo {
 	return tweets
 }
 
+// GetTwitterFeed provides a list of tweets from local cache or Contentful after mapping
 func GetTwitterFeed(cma *CmaClient, count int) []*TwitterInfo {
 	contentType := "newsFeed"
-	cacheKey := contentType + cma.SpaceId
+	cacheKey := contentType + cma.SpaceID
 
 	if cachedEntry, found := localCache.Get(cacheKey); found {
 		// Entry found in the cache, use it
@@ -120,13 +126,13 @@ func GetTwitterFeed(cma *CmaClient, count int) []*TwitterInfo {
 
 		if count >= len(entry) {
 			return entry
-		} else {
-			return entry[0:count]
 		}
+
+		return entry[0:count]
 
 	} else {
 		// Entry not found in the cache, fetch it from Contentful
-		body := FetchEntriesFromContentful(contentType, cma.SpaceId, cma.Token, strconv.Itoa(cma.Limit))
+		body := FetchEntriesFromContentful(contentType, cma.SpaceID, cma.Token, strconv.Itoa(cma.Limit))
 
 		// Map the fetched entry to a NewsFeed struct
 		tweets := mapEntriesToTwitterFeed(body)
@@ -139,8 +145,8 @@ func GetTwitterFeed(cma *CmaClient, count int) []*TwitterInfo {
 
 		if count >= len(tweets) {
 			return tweets
-		} else {
-			return tweets[0:count]
 		}
+
+		return tweets[0:count]
 	}
 }
