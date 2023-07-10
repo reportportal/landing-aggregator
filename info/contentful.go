@@ -122,31 +122,30 @@ func GetTwitterFeed(cma *CmaClient, count int) []*TwitterInfo {
 		entry := cachedEntry.([]*TwitterInfo)
 
 		// Debugging info
-		// fmt.Printf("\nEntry fetched from local cache: \n%s\n", newsFeed)
+		// fmt.Printf("\nEntry fetched from local cache: \n%s\n", entry)
 
 		if count >= len(entry) {
 			return entry
 		}
 
 		return entry[0:count]
-
-	} else {
-		// Entry not found in the cache, fetch it from Contentful
-		body := FetchEntriesFromContentful(contentType, cma.SpaceID, cma.Token, strconv.Itoa(cma.Limit))
-
-		// Map the fetched entry to a NewsFeed struct
-		tweets := mapEntriesToTwitterFeed(body)
-
-		// Store the fetched entry in the cache
-		localCache.Set(cacheKey, tweets, cache.DefaultExpiration)
-
-		// Debugging info
-		// fmt.Printf("\nEntry fetched from Contentful: \n%s\n", newsFeed)
-
-		if count >= len(tweets) {
-			return tweets
-		}
-
-		return tweets[0:count]
 	}
+
+	// Entry not found in the cache, fetch it from Contentful
+	body := FetchEntriesFromContentful(contentType, cma.SpaceID, cma.Token, strconv.Itoa(cma.Limit))
+
+	// Map the fetched entry to a NewsFeed struct
+	tweets := mapEntriesToTwitterFeed(body)
+
+	// Store the fetched entry in the cache
+	localCache.Set(cacheKey, tweets, cache.DefaultExpiration)
+
+	// Debugging info
+	// fmt.Printf("\nEntry fetched from Contentful: \n%s\n", tweets)
+
+	if count >= len(tweets) {
+		return tweets
+	}
+
+	return tweets[0:count]
 }
