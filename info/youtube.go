@@ -100,7 +100,7 @@ func (y *YoutubeBuffer) loadVideos() {
 	y.info.Store(videos)
 }
 func (y *YoutubeBuffer) getVideos() ([]VideoInfo, error) {
-	call := y.youtube.Search.List("snippet")
+	call := y.youtube.Search.List([]string{"snippet"})
 	call = call.
 		ChannelId(y.channelID).
 		Fields("items(id/videoId)").
@@ -119,7 +119,7 @@ func (y *YoutubeBuffer) getVideos() ([]VideoInfo, error) {
 		ids[i] = item.Id.VideoId
 	}
 	rs, err := y.youtube.Videos.
-		List("snippet,contentDetails,statistics").
+		List([]string{"snippet,contentDetails,statistics"}).
 		Id(strings.Join(ids, ",")).
 		IfNoneMatch(y.videosETag).
 		MaxResults(y.cacheSize).

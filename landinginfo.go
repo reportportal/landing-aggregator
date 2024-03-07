@@ -3,12 +3,12 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/caarlos0/env/v6"
+	"github.com/go-chi/chi/v5"
 	"net/http"
 	"os"
 	"strconv"
 
-	"github.com/caarlos0/env/v6"
-	"github.com/go-chi/chi"
 	"github.com/reportportal/commons-go/v5/commons"
 	"github.com/reportportal/commons-go/v5/server"
 	"github.com/reportportal/landing-aggregator/info"
