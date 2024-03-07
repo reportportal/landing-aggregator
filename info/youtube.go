@@ -5,11 +5,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	"google.golang.org/api/option"
+
 	"github.com/pkg/errors"
 	"github.com/reportportal/commons-go/v5/commons"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
-	"golang.org/x/oauth2/google"
 	"google.golang.org/api/googleapi"
 	"google.golang.org/api/youtube/v3"
 )
@@ -49,14 +50,9 @@ type Statistics struct {
 }
 
 // NewYoutubeVideosBuffer creates new buffer of YouTube videos info
-func NewYoutubeVideosBuffer(channelID string, cacheSize int, keyFile []byte) (*YoutubeBuffer, error) {
-	jwtConfig, err := google.JWTConfigFromJSON(keyFile, youtube.YoutubeScope)
-	if err != nil {
-		return nil, errors.Wrap(err, "Cannot build Youtube service")
-	}
-
-	client := jwtConfig.Client(context.TODO())
-	srv, err := youtube.New(client)
+func NewYoutubeVideosBuffer(channelID string, cacheSize int, apiKey string) (*YoutubeBuffer, error) {
+	ctx := context.Background()
+	srv, err := youtube.NewService(ctx, option.WithAPIKey(apiKey))
 	if nil != err {
 		return nil, errors.Wrap(err, "Cannot build Youtube service")
 	}

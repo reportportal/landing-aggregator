@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
@@ -17,7 +16,6 @@ import (
 )
 
 const (
-	defaultTwitterRSCount = 3
 	defaultYoutubeRSCount = 3
 )
 
@@ -87,9 +85,9 @@ func main() {
 	router.Use(enableCORSMiddleware)
 
 	//info endpoint
-	router.Get("/info", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+	router.Get("/info", func(w http.ResponseWriter, rq *http.Request) {
 		jsonRS(http.StatusOK, buildInfo, w)
-	}))
+	})
 
 	router.Get("/twitter", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
 		count := getQueryIntParam(rq, "count", conf.CmaLimit)
@@ -201,11 +199,11 @@ func buildYoutubeBuffer(conf *config) (buf *info.YoutubeBuffer, err error) {
 			// return the modified err and rep
 		}
 	}()
-	googleKeyFile, err := base64.StdEncoding.DecodeString(conf.GoogleAPIKeyFile)
-	if nil != err {
-		return nil, err
+
+	if conf.GoogleAPIKeyFile == "" {
+		return nil, errors.New("environment variable GOOGLE_API_KEY not set")
 	}
-	buf, err = info.NewYoutubeVideosBuffer(conf.YoutubeChannelID, conf.YoutubeBufferSize, googleKeyFile)
+	buf, err = info.NewYoutubeVideosBuffer(conf.YoutubeChannelID, conf.YoutubeBufferSize, conf.GoogleAPIKeyFile)
 	if err != nil {
 		return nil, err
 	}
@@ -225,10 +223,10 @@ type config struct {
 	IncludeBeta bool   `env:"GITHUB_INCLUDE_BETA" envDefault:"false"`
 	GitHubToken string `env:"GITHUB_TOKEN" envDefault:"false"`
 
-	GoogleAPIKeyFile string `env:"GOOGLE_API_KEY"`
+	GoogleAPIKeyFile string `env:"GOOGLE_API_KEY" envDefault:"false"`
 
 	YoutubeBufferSize int    `env:"YOUTUBE_BUFFER_SIZE" envDefault:"10"`
-	YoutubeChannelID  string `env:"YOUTUBE_CHANNEL_ID" envDefault:"UCsZxrHqLHPJcrkcgIGRG-cQ"`
+	YoutubeChannelID  string `env:"YOUTUBE_CHANNEL_ID" envDefault:"false"`
 
 	CmaToken   string `env:"CONTENTFUL_TOKEN"`
 	CmaSpaceID string `env:"CONTENTFUL_SPACE_ID" envDefault:"1n1nntnzoxp4"`
