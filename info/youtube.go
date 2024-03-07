@@ -32,14 +32,21 @@ type YoutubeBuffer struct {
 
 // VideoInfo represents video details
 type VideoInfo struct {
-	ID          string `json:"id"`
-	Title       string `json:"title"`
-	Thumbnail   string `json:"thumbnail,omitempty"`
-	Duration    string `json:"duration,omitempty"`
-	PublishedAt string `json:"published_at"`
+	ID          string     `json:"id"`
+	Title       string     `json:"title"`
+	Thumbnail   string     `json:"thumbnail,omitempty"`
+	Duration    string     `json:"duration,omitempty"`
+	PublishedAt string     `json:"published_at"`
+	Statistics  Statistics `json:"statistics,omitempty"`
 }
 
-// NewYoutubeVideosBuffer creates new buffer of youtube videos info
+type Statistics struct {
+	CommentCount uint64 `json:"comment_count,omitempty"`
+	LikeCount    uint64 `json:"like_count,omitempty"`
+	ViewCount    uint64 `json:"view_count,omitempty"`
+}
+
+// NewYoutubeVideosBuffer creates new buffer of YouTube videos info
 func NewYoutubeVideosBuffer(channelID string, cacheSize int, keyFile []byte) (*YoutubeBuffer, error) {
 	jwtConfig, err := google.JWTConfigFromJSON(keyFile, youtube.YoutubeScope)
 	if err != nil {
@@ -72,14 +79,14 @@ func (y *YoutubeBuffer) GetAllVideos() []VideoInfo {
 
 // GetVideos returns slice with specified count of videos
 func (y *YoutubeBuffer) GetVideos(c int) []VideoInfo {
-	vids, ok := y.info.Load().([]VideoInfo)
+	items, ok := y.info.Load().([]VideoInfo)
 	if !ok {
 		return []VideoInfo{}
 	}
-	if len(vids) < c {
-		return vids
+	if len(items) < c {
+		return items
 	}
-	return vids[0:c]
+	return items[0:c]
 }
 
 func (y *YoutubeBuffer) loadVideos() {
@@ -96,7 +103,13 @@ func (y *YoutubeBuffer) loadVideos() {
 }
 func (y *YoutubeBuffer) getVideos() ([]VideoInfo, error) {
 	call := y.youtube.Search.List("snippet")
-	call = call.ChannelId(y.channelID).Fields("items(id/videoId)").Order("date").Type("video").MaxResults(y.cacheSize).IfNoneMatch(y.searchETag)
+	call = call.
+		ChannelId(y.channelID).
+		Fields("items(id/videoId)").
+		Order("date").
+		Type("video").
+		MaxResults(y.cacheSize).
+		IfNoneMatch(y.searchETag)
 	searchRS, err := call.Do()
 	if nil != err {
 		return nil, err
@@ -107,7 +120,12 @@ func (y *YoutubeBuffer) getVideos() ([]VideoInfo, error) {
 	for i, item := range searchRS.Items {
 		ids[i] = item.Id.VideoId
 	}
-	rs, err := y.youtube.Videos.List("snippet,contentDetails").Id(strings.Join(ids, ",")).IfNoneMatch(y.videosETag).MaxResults(y.cacheSize).Do()
+	rs, err := y.youtube.Videos.
+		List("snippet,contentDetails,statistics").
+		Id(strings.Join(ids, ",")).
+		IfNoneMatch(y.videosETag).
+		MaxResults(y.cacheSize).
+		Do()
 	if nil != err {
 		return nil, err
 	}
@@ -121,6 +139,11 @@ func (y *YoutubeBuffer) getVideos() ([]VideoInfo, error) {
 			PublishedAt: video.Snippet.PublishedAt,
 			Duration:    video.ContentDetails.Duration,
 			Thumbnail:   video.Snippet.Thumbnails.High.Url,
+			Statistics: Statistics{
+				CommentCount: video.Statistics.CommentCount,
+				LikeCount:    video.Statistics.LikeCount,
+				ViewCount:    video.Statistics.ViewCount,
+			},
 		}
 	}
 
