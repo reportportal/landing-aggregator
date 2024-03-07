@@ -1,6 +1,10 @@
 package info
 
 import (
+	"strings"
+	"sync/atomic"
+	"time"
+
 	"github.com/pkg/errors"
 	"github.com/reportportal/commons-go/v5/commons"
 	log "github.com/sirupsen/logrus"
@@ -8,9 +12,6 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/googleapi"
 	"google.golang.org/api/youtube/v3"
-	"strings"
-	"sync/atomic"
-	"time"
 )
 
 //"https://www.youtube.com/watch?v=" + video.Id,
@@ -40,6 +41,7 @@ type VideoInfo struct {
 	Statistics  Statistics `json:"statistics,omitempty"`
 }
 
+// Statistics represents video statistics
 type Statistics struct {
 	CommentCount uint64 `json:"comment_count,omitempty"`
 	LikeCount    uint64 `json:"like_count,omitempty"`
