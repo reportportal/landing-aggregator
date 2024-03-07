@@ -21,7 +21,7 @@ help:
 
 
 get-build-deps: # prepare stuff required for the build
-	$(GO) install $(BUILD_DEPS)
+	$(GO) get $(BUILD_DEPS)
 
 # executes unit-tests
 test:
