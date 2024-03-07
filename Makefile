@@ -6,7 +6,7 @@ BUILD_DATE = `date +%FT%T%z`
 GO = go
 BINARY_DIR=bin
 
-BUILD_DEPS:= github.com/alecthomas/gometalinter
+BUILD_DEPS:= github.com/golangci/golangci-lint/cmd/golangci-lint
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 
 .PHONY: test build
@@ -21,8 +21,7 @@ help:
 
 
 get-build-deps: # prepare stuff required for the build
-	$(GO) get $(BUILD_DEPS)
-	gometalinter --install
+	$(GO) install $(BUILD_DEPS)
 
 # executes unit-tests
 test:
@@ -30,7 +29,7 @@ test:
 
 # executes bunch of checkstyle validators
 checkstyle:
-	gometalinter --vendor ./... --fast --disable=gas --disable=errcheck --disable=gotype --deadline 5m
+	golangci-lint run ./... --fast --disable=gas --disable=errcheck --deadline 5m
 
 # formats the project
 fmt:
