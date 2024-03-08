@@ -2,12 +2,13 @@ package info
 
 import (
 	"fmt"
-	"github.com/dghubble/sling"
 	"net/http"
 	"sort"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/dghubble/sling"
 )
 
 const (
@@ -35,12 +36,12 @@ func NewDockerHubTags(includeBeta bool) *DHubTags {
 
 	//schedules updates of latest versions
 	duration := time.Hour
-	ticker := time.Tick(duration)
+	ticker := time.NewTicker(duration)
 
 	go func() {
 		//initially loads the latest versions
 		versions.load()
-		for range ticker {
+		for range ticker.C {
 			versions.load()
 		}
 	}()

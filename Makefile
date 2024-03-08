@@ -29,7 +29,7 @@ test:
 
 # executes bunch of checkstyle validators
 checkstyle:
-	golangci-lint run ./... --fast --disable=gas --disable=errcheck --deadline 5m
+	golangci-lint run ./... --disable=gas --disable=errcheck --deadline 5m
 
 # formats the project
 fmt:

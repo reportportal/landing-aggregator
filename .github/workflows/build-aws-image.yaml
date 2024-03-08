@@ -42,6 +42,7 @@ jobs:
           version: 'v1.56'
           args:
             --timeout=10m
+            --fast
             --disable=errcheck
             --disable=gas
   call-docker-build:

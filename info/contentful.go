@@ -3,7 +3,7 @@ package info
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -71,15 +71,11 @@ func FetchEntriesFromContentful(contentType string, spaceID string, token string
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Printf("Error reading response body: %v\n", err)
 		return nil
 	}
-
-	// Debugging info
-	// fmt.Printf("\n%s\n", body)
-
 	return body
 }
 
