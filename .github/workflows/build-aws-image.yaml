@@ -1,4 +1,4 @@
-name: Build RC Docker image
+name: Build AWS Docker image
 
 on:
   workflow_dispatch:
