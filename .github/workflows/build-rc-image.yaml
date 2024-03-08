@@ -65,13 +65,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Create release
-        uses: actions/create-release@v2
+        uses: comnoco/create-release-action@v2.0.5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ inputs.version }}
-          release_name: ${{ inputs.version }}
+          tag_name: v${{ inputs.version }}
+          release_name: v${{ inputs.version }}
           body: |
-            Release ${{ inputs.version }}
+            Release v${{ inputs.version }}
           draft: false
           prerelease: false
