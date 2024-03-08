@@ -21,7 +21,7 @@ on:
         required: false
         default: 'latest'
       create-release:
-        description: 'Set if need to creat release tag'
+        description: 'Create release'
         type: boolean
         default: false
 jobs:
