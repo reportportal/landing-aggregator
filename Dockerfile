@@ -1,6 +1,6 @@
 FROM --platform=${BUILDPLATFORM} golang:1.22.1-alpine3.19 AS builder
 
-ENV APP_DIR=/go/src/github.com/org/repo
+ENV APP_DIR=/go/src/github.com/org/repos
 
 ARG TARGETOS=linux
 ARG TARGETARCH=amd64
