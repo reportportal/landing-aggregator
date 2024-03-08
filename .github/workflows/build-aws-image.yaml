@@ -15,7 +15,7 @@ on:
       version:
         description: 'Version'
         required: true
-        default: 'latest'
+        default: 'X.Y.Z'
       additional-tag:
         description: 'Additional tag'
         required: false
