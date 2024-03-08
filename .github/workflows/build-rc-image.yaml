@@ -3,18 +3,27 @@ name: Build RC Docker image
 on:
   workflow_dispatch:
     inputs:
-      BUILD_PLATFORMS:
+      platforms:
         description: 'Platforms to build'
+        type: choice
         required: true
         default: 'linux/amd64,linux/arm64'
-      AWS_REGION:
-        description: 'AWS region'
-        required: true
-        default: 'us-east-1'
-      VERSION:
+        options:
+          - linux/amd64,linux/arm64
+          - linux/amd64
+          - linux/arm64
+      version:
         description: 'Version'
         required: true
         default: 'latest'
+      additional-tag:
+        description: 'Additional tag'
+        required: false
+        default: 'latest'
+      create-release:
+        description: 'Set if need to creat release tag'
+        type: boolean
+        default: false
 jobs:
   golangci:
     name: lint
@@ -33,7 +42,7 @@ jobs:
           version: 'v1.56'
           args:
             --timeout=10m
-            --disable=errcheck
+            --disable=errcheckvars
             --disable=gas
   call-docker-build:
     name: Call release candidate Docker build
@@ -41,9 +50,28 @@ jobs:
     uses: reportportal/.github/.github/workflows/build-docker-image.yaml@main
     with:
       aws-region: ${{ vars.AWS_REGION }}
-      image-tag: ${{ vars.VERSION }}-${{ github.run_number }}
-      additional-tag: 'latest'
-      build-platforms: ${{ vars.BUILD_PLATFORMS }}
-      version: ${{ vars.VERSION }}
+      image-tag: ${{ inputs.version }}-${{ github.run_number }}
+      additional-tag: ${{ inputs.additional-tag }}
+      build-platforms: ${{ inputs.platforms }}
+      version: ${{ inputs.VERSION }}
       scan-image: true
     secrets: inherit
+  create-release:
+    name: Create release
+    needs: call-docker-build
+    if: ${{ inputs.create-release }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Create release
+        uses: actions/create-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ inputs.version }}
+          release_name: ${{ inputs.version }}
+          body: |
+            Release ${{ inputs.version }}
+          draft: false
+          prerelease: false
