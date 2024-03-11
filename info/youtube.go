@@ -34,12 +34,12 @@ type YoutubeBuffer struct {
 
 // VideoInfo represents video details
 type VideoInfo struct {
-	ID          string                   `json:"id"`
-	Title       string                   `json:"title"`
-	Thumbnails  youtube.ThumbnailDetails `json:"thumbnails,omitempty"`
-	Duration    string                   `json:"duration,omitempty"`
-	PublishedAt string                   `json:"published_at"`
-	Statistics  Statistics               `json:"statistics,omitempty"`
+	ID          string     `json:"id"`
+	Title       string     `json:"title"`
+	Thumbnail   string     `json:"thumbnail,omitempty"`
+	Duration    string     `json:"duration,omitempty"`
+	PublishedAt string     `json:"published_at"`
+	Statistics  Statistics `json:"statistics,omitempty"`
 }
 
 // Statistics represents video statistics
@@ -140,7 +140,7 @@ func (y *YoutubeBuffer) getVideos() ([]VideoInfo, error) {
 			Title:       video.Snippet.Title,
 			PublishedAt: video.Snippet.PublishedAt,
 			Duration:    video.ContentDetails.Duration,
-			Thumbnails:  *video.Snippet.Thumbnails,
+			Thumbnail:   video.Snippet.Thumbnails.High.Url,
 			Statistics: Statistics{
 				CommentCount: video.Statistics.CommentCount,
 				LikeCount:    video.Statistics.LikeCount,
