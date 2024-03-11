@@ -50,7 +50,11 @@ type Statistics struct {
 }
 
 // NewYoutubeVideosBuffer creates new buffer of YouTube videos info
-func NewYoutubeVideosBuffer(channelID string, cacheSize int, apiKey string) (*YoutubeBuffer, error) {
+func NewYoutubeVideosBuffer(
+	channelID string,
+	cacheSize int,
+	apiKey string,
+) (*YoutubeBuffer, error) {
 	ctx := context.Background()
 	srv, err := youtube.NewService(ctx, option.WithAPIKey(apiKey))
 	if nil != err {
