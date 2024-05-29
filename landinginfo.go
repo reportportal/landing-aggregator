@@ -3,11 +3,12 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/caarlos0/env/v6"
-	"github.com/go-chi/chi/v5"
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/caarlos0/env/v6"
+	"github.com/go-chi/chi/v5"
 
 	"github.com/reportportal/commons-go/v5/commons"
 	"github.com/reportportal/commons-go/v5/server"
@@ -56,7 +57,9 @@ func main() {
 		BuildDate: BuildDate,
 	}
 
-	cma := info.NewCma(conf.CmaSpaceID, conf.CmaToken, conf.CmaLimit)
+	cma := info.NewCma(conf.CmaSpaceId, conf.CmaToken, conf.CmaLimit)
+
+	mailchimpClient := info.NewMailchimpClient(conf.MailchimpApiKey)
 
 	var ghAggr *info.GitHubAggregator
 	if conf.GitHubToken == "false" {
@@ -67,7 +70,7 @@ func main() {
 
 	var youtubeBuffer *info.YoutubeBuffer
 	var err error
-	if conf.YoutubeChannelID == "" {
+	if conf.YoutubeChannelId == "" {
 		log.Error("Environment variable YOUTUBE_CHANNEL_ID not set")
 	} else {
 		youtubeBuffer, err = buildYoutubeBuffer(conf)
@@ -143,6 +146,19 @@ func main() {
 		jsonRS(http.StatusOK, rs, w)
 	}))
 
+	// Mailchimp-related routes
+	router.Route("/mailchimp/", func(mcRouter chi.Router) {
+		mcRouter.Post("/lists/:list_id/members", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+			listId := rq.URL.Query().Get("list_id")
+			email, err := info.ParseMailchimpRequestBody(rq.Body)
+			if err != nil {
+				jsonRS(http.StatusBadRequest, map[string]string{"error": err.Error()}, w)
+				return
+			}
+			jsonRS(http.StatusOK, mailchimpClient.AddSubscription(email, listId), w)
+		}))
+	})
+
 	// listen and server on mentioned port
 	log.Infof("Starting on port %d", conf.Port)
 
@@ -200,10 +216,10 @@ func buildYoutubeBuffer(conf *config) (buf *info.YoutubeBuffer, err error) {
 		}
 	}()
 
-	if conf.GoogleAPIKeyFile == "" {
+	if conf.GoogleApiKeyFile == "" {
 		return nil, errors.New("environment variable GOOGLE_API_KEY not set")
 	}
-	buf, err = info.NewYoutubeVideosBuffer(conf.YoutubeChannelID, conf.YoutubeBufferSize, conf.GoogleAPIKeyFile)
+	buf, err = info.NewYoutubeVideosBuffer(conf.YoutubeChannelId, conf.YoutubeBufferSize, conf.GoogleApiKeyFile)
 	if err != nil {
 		return nil, err
 	}
@@ -223,14 +239,17 @@ type config struct {
 	IncludeBeta bool   `env:"GITHUB_INCLUDE_BETA" envDefault:"false"`
 	GitHubToken string `env:"GITHUB_TOKEN" envDefault:"false"`
 
-	GoogleAPIKeyFile string `env:"GOOGLE_API_KEY" envDefault:"false"`
+	GoogleApiKeyFile string `env:"GOOGLE_API_KEY" envDefault:"false"`
 
 	YoutubeBufferSize int    `env:"YOUTUBE_BUFFER_SIZE" envDefault:"10"`
-	YoutubeChannelID  string `env:"YOUTUBE_CHANNEL_ID" envDefault:"false"`
+	YoutubeChannelId  string `env:"YOUTUBE_CHANNEL_ID" envDefault:"false"`
 
 	CmaToken   string `env:"CONTENTFUL_TOKEN"`
-	CmaSpaceID string `env:"CONTENTFUL_SPACE_ID" envDefault:"1n1nntnzoxp4"`
+	CmaSpaceId string `env:"CONTENTFUL_SPACE_ID" envDefault:"1n1nntnzoxp4"`
 	CmaLimit   int    `env:"CONTENTFUL_LIMIT" envDefault:"15"`
+
+	MailchimpApiKey string `env:"MAILCHIMP_API_KEY" envDefault:"false"`
+	MailchimpListId string `env:"MAILCHIMP_LIST_ID" envDefault:"false"`
 }
 
 var notFoundMiddleware = func(w http.ResponseWriter, rq *http.Request) {
