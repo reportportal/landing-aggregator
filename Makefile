@@ -21,7 +21,7 @@ help:
 
 
 get-build-deps: # prepare stuff required for the build
-	$(GO) install $(BUILD_DEPS)
+	$(GO) get $(BUILD_DEPS)
 
 # executes unit-tests
 test:
@@ -29,7 +29,7 @@ test:
 
 # executes bunch of checkstyle validators
 checkstyle:
-	golangci-lint run ./... --disable=gas --disable=errcheck --deadline 5m
+	golangci-lint run ./... --disable=gosec --disable=errcheck --timeout 5m
 
 # formats the project
 fmt:
