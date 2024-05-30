@@ -35,7 +35,7 @@ _testmain.go
 /bin/
 
 ##Vendor
-vendor/*/
+vendor/*
 
 ## Devcontainers
 .devcontainer/
