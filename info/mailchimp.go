@@ -18,16 +18,12 @@ type MailchimpList struct {
 	*gochimp3.ListResponse
 }
 
-type MailchimpNewMemberRequest = gochimp3.MemberRequest
+type MailchimpMember = gochimp3.Member
 
-type RequestBody struct {
-	EmailAddress string `json:"email_address"`
-	Status       string `json:"status"`
-}
+type MailchimpMemberRequest = gochimp3.MemberRequest
 
 func NewMailchimpClient(apiKey string) *MailchimpClient {
 	client := gochimp3.New(apiKey)
-	client.User = "landinginfo"
 	return &MailchimpClient{client}
 }
 
@@ -41,52 +37,58 @@ func (client *MailchimpClient) GetList(id string) (*MailchimpList, error) {
 	return &MailchimpList{list}, nil
 }
 
-func NewMemberRequest(email string) (*MailchimpNewMemberRequest, error) {
-	if !isValidEmail(email) {
+func (client *MailchimpClient) AddSubscription(rq *MailchimpMemberRequest, listId string) (*MailchimpMember, error) {
+	list, err := client.GetList(listId)
+	if err != nil {
+		return nil, err
+	}
+
+	if list.isMemberSubscribed(rq.EmailAddress) {
+		return nil, errors.New("email address already subscribed")
+	}
+
+	rq.Status = "subscribed"
+
+	response, err := list.AddOrUpdateMember(rq.EmailAddress, rq)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func ParseMailchimpMemberRequestBody(body io.Reader) (*MailchimpMemberRequest, error) {
+
+	var requestBody MailchimpMemberRequest
+
+	bytes, err := io.ReadAll(body)
+	if err != nil {
+		return nil, errors.New("failed to read request body")
+	}
+
+	err = json.Unmarshal(bytes, &requestBody)
+	if err != nil {
+		return nil, errors.New("invalid request body")
+	}
+
+	if requestBody.EmailAddress == "" {
+		return nil, errors.New("email address is required")
+	}
+
+	if !isValidEmail(requestBody.EmailAddress) {
 		return nil, errors.New("invalid email address")
 	}
 
-	newMember := &MailchimpNewMemberRequest{
-		EmailAddress: email,
-		Status:       "subscribed",
-	}
-
-	return newMember, nil
+	return &requestBody, nil
 }
 
-func (client *MailchimpClient) AddSubscription(email string, listId string) error {
-	list, err := client.GetList(listId)
+func (list *MailchimpList) isMemberSubscribed(id string) bool {
+	member, err := list.GetMember(id, &gochimp3.BasicQueryParams{Fields: []string{"status"}})
 	if err != nil {
-		return err
+		return false
 	}
 
-	newMember, err := NewMemberRequest(email)
-	if err != nil {
-		return err
-	}
-
-	_, err = list.CreateMember(newMember)
-	if err != nil {
-		fmt.Printf("Failed to add member '%s' to list '%s'", email, listId)
-		return err
-	}
-
-	return nil
-}
-
-func ParseMailchimpRequestBody(body io.Reader) (string, error) {
-	var reqBody RequestBody
-	bytes, err := io.ReadAll(body)
-	if err != nil {
-		return "", errors.New("failed to read request body")
-	}
-
-	err = json.Unmarshal(bytes, &reqBody)
-	if err != nil {
-		return "", errors.New("invalid request body")
-	}
-
-	return reqBody.EmailAddress, nil
+	return member.Status == "subscribed"
 }
 
 func isValidEmail(email string) bool {

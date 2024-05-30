@@ -1,6 +1,6 @@
 @dc = us18
 
-GET https://{{dc}}.api.mailchimp.com/3.0/lists/{{mailchimpListId}}
+GET https://{{dc}}.api.mailchimp.com/3.0/lists
 Authorization: Bearer {{mailchimpApiKey}}
 
 ###

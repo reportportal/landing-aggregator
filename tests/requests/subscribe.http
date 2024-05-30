@@ -1,0 +1,12 @@
+@host = localhost
+@port = 8080
+
+POST http://{{host}}:{{port}}/mailchimp/lists/{{mailchimpListId}}/members
+
+{
+  "email_address": "new.raikbitters@gmail.com",
+  "merge_fields": {
+    "FNAME": "Ivan",
+    "LNAME": "Ivanov"
+  }
+}
