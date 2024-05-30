@@ -53,3 +53,8 @@ clean:
 
 release: test
 	scripts/release.sh $v
+
+update:
+	$(GO) get -u
+	$(GO) mod tidy
+	$(GO) mod vendor
