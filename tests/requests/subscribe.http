@@ -4,9 +4,5 @@
 POST http://{{host}}:{{port}}/mailchimp/lists/{{mailchimpListId}}/members
 
 {
-  "email_address": "new.raikbitters@gmail.com",
-  "merge_fields": {
-    "FNAME": "Ivan",
-    "LNAME": "Ivanov"
-  }
+  "email_address": ""
 }
