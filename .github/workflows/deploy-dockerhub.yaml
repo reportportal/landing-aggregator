@@ -12,7 +12,7 @@ on:
         type: string
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
-  ECR_REPOSITORY: ${{ github.repository }}
+  ECR_REPOSITORY: ${{ github.event.repository.name }}
   TARGET: ${{ vars.PLATFORMS }}
 jobs:
   deploy:
