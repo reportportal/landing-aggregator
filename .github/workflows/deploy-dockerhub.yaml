@@ -1,4 +1,4 @@
-name: Deploy Docker Image from AWS ECR to Docker Hub
+name: Docker Hub Deploy
 
 on:
   release:
