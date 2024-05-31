@@ -14,6 +14,8 @@ env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   ECR_REPOSITORY: ${{ github.event.repository.name }}
   TARGET: ${{ vars.PLATFORMS }}
+  TARGET_REGISTRY: ${{ vars.TARGET_REGISTRY }}
+  TARGET_REPOSITORY: ${{ vars.TARGET_REPOSITORY }}
 jobs:
   deploy:
     if: github.event_name == 'release' && github.event.action == 'created'
