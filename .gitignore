@@ -6,6 +6,7 @@
 # Folders
 _obj
 _test
+tmp
 
 # Architecture specific extensions/prefixes
 *.[568vq]
@@ -27,11 +28,14 @@ _testmain.go
 .idea/
 *.iml
 
+## Visual Studio Code
+.vscode/
+
 ## Binaries
 /bin/
 
 ##Vendor
-vendor/*/
+vendor/*
 
 ## Devcontainers
 .devcontainer/

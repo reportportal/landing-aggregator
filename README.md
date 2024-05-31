@@ -83,17 +83,20 @@ Aggregates issue statistics from each organization repository
 
 Aggregator can be configured through env variables. The following configuration options are available:
 
-| ENV VAR             | Default Value    | Description
-| ------------------- |:----------------:|-----------------------------
-| PORT                | 8080             | Application port
-| GITHUB_INCLUDE_BETA | false            | Whether BETA versions should be included
-| GITHUB_TOKEN        | false            | GitHUB API Token
-| GOOGLE_API_KEY      | false            | Google API Key
-| YOUTUBE_BUFFER_SIZE | 10               | Number of videos to be cached
-| YOUTUBE_CHANNEL_ID  | Null             | YouTube channel ID
-| CONTENTFUL_TOKEN    | Null             | Contentful API Access Token
-| CONTENTFUL_SPACE_ID | 1n1nntnzoxp4     | Contentful Space ID
-| CONTENTFUL_LIMIT    | 15               | Number of entries to be fetched and cached
+| ENV VAR                     | Default Value      | Description
+|-----------------------------|:------------------:|-----------------------------
+| PORT                        | 8080               | Application port
+| GITHUB_INCLUDE_BETA         | false              | Whether BETA versions should be included
+| GITHUB_TOKEN                | false              | GitHUB API Token
+| GOOGLE_API_KEY              | false              | Google API Key
+| YOUTUBE_BUFFER_SIZE         | 10                 | Number of videos to be cached
+| YOUTUBE_CHANNEL_ID          | Null               | YouTube channel ID
+| CONTENTFUL_TOKEN            | Null               | Contentful API Access Token
+| CONTENTFUL_SPACE_ID         | 1n1nntnzoxp4       | Contentful Space ID
+| CONTENTFUL_LIMIT            | 15                 | Number of entries to be fetched and cached
+| MAILCHIMP_API_KEY           | Null               | MailChimp API Key
+| MAILCHIMP_USER              | landing-aggregator | MailChimp User
+| MAILCHIMP_TIMEOUT_SECONDS   | 3                  | MailChimp Requests Timeout
 
 ## Production deployment
 
