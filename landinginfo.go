@@ -158,13 +158,7 @@ func main() {
 	// Mailchimp-related routes
 	router.Route("/mailchimp/", func(router chi.Router) {
 		router.Post("/lists/{listID}/members", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
-			listID := chi.URLParam(rq, "listID")
-			memberRequest, err := info.ParseMailchimpMemberRequestBody(rq.Body)
-			if err != nil {
-				jsonRS(http.StatusBadRequest, map[string]string{"error": err.Error()}, w)
-				return
-			}
-			member, err := mailchimpClient.AddSubscription(memberRequest, listID)
+			member, err := mailchimpClient.AddSubscription(rq.Body, chi.URLParam(rq, "listID"))
 			if err != nil {
 				jsonRS(http.StatusBadRequest, map[string]string{"error": err.Error()}, w)
 				return

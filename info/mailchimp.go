@@ -27,29 +27,24 @@ func NewMailchimpClient(apiKey string) *MailchimpClient {
 	return &MailchimpClient{client}
 }
 
-func (client *MailchimpClient) GetList(id string) (*MailchimpList, error) {
-	list, err := client.API.GetList(id, nil)
-	if err != nil {
-		fmt.Printf("Failed to get list '%s'", id)
-		return nil, err
-	}
-
-	return &MailchimpList{list}, nil
-}
-
-func (client *MailchimpClient) AddSubscription(rq *MailchimpMemberRequest, listId string) (*MailchimpMember, error) {
-	list, err := client.GetList(listId)
+func (client *MailchimpClient) AddSubscription(rq io.Reader, listId string) (*MailchimpMember, error) {
+	memberRequest, err := parseMemberRequestBody(rq)
 	if err != nil {
 		return nil, err
 	}
 
-	if list.isMemberSubscribed(rq.EmailAddress) {
+	list, err := client.getList(listId)
+	if err != nil {
+		return nil, err
+	}
+
+	if list.isMemberSubscribed(memberRequest.EmailAddress) {
 		return nil, errors.New("email address already subscribed")
 	}
 
-	rq.Status = "subscribed"
+	memberRequest.Status = "subscribed"
 
-	response, err := list.AddOrUpdateMember(rq.EmailAddress, rq)
+	response, err := list.AddOrUpdateMember(memberRequest.EmailAddress, memberRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +52,7 @@ func (client *MailchimpClient) AddSubscription(rq *MailchimpMemberRequest, listI
 	return response, nil
 }
 
-func ParseMailchimpMemberRequestBody(body io.Reader) (*MailchimpMemberRequest, error) {
+func parseMemberRequestBody(body io.Reader) (*MailchimpMemberRequest, error) {
 
 	var requestBody MailchimpMemberRequest
 
@@ -80,6 +75,16 @@ func ParseMailchimpMemberRequestBody(body io.Reader) (*MailchimpMemberRequest, e
 	}
 
 	return &requestBody, nil
+}
+
+func (client *MailchimpClient) getList(id string) (*MailchimpList, error) {
+	list, err := client.API.GetList(id, nil)
+	if err != nil {
+		fmt.Printf("Failed to get list '%s'", id)
+		return nil, err
+	}
+
+	return &MailchimpList{list}, nil
 }
 
 func (list *MailchimpList) isMemberSubscribed(id string) bool {
