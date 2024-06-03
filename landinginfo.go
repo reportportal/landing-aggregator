@@ -156,15 +156,23 @@ func main() {
 	}))
 
 	// Mailchimp-related routes
-	router.Route("/mailchimp/", func(router chi.Router) {
-		router.Post("/lists/{listID}/members", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
-			member, err := mailchimpClient.AddSubscription(rq.Body, chi.URLParam(rq, "listID"))
-			if err != nil {
-				jsonRS(http.StatusBadRequest, map[string]string{"error": err.Error()}, w)
-				return
-			}
-			jsonRS(http.StatusOK, member, w)
-		}))
+	router.Route("/mailchimp/", func(mcRouter chi.Router) {
+		mcRouter.Route("/lists/{listID}/members", func(mcListRouter chi.Router) {
+			mcListRouter.Options("/", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+				w.Header().Add("Access-Control-Allow-Methods", "OPTIONS, POST")
+				w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+				w.Header().Add("Access-Control-Max-Age", "86400")
+				w.WriteHeader(http.StatusOK)
+			}))
+			mcListRouter.Post("/", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+				member, err := mailchimpClient.AddSubscription(rq.Body, chi.URLParam(rq, "listID"))
+				if err != nil {
+					jsonRS(http.StatusBadRequest, map[string]string{"error": err.Error()}, w)
+					return
+				}
+				jsonRS(http.StatusOK, member, w)
+			}))
+		})
 	})
 
 	// listen and server on mentioned port
@@ -173,7 +181,6 @@ func main() {
 	if err := http.ListenAndServe(":"+strconv.Itoa(conf.Port), router); nil != err {
 		log.Fatal(err)
 	}
-
 }
 
 func jsonpRS(status int, body interface{}, w http.ResponseWriter, rq *http.Request) {
