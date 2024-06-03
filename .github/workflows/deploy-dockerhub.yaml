@@ -12,7 +12,7 @@ on:
       tag:
         description: 'Tag to deploy'
         required: true
-        default: 'X.Y.Z'
+        default: 'vX.Y.Z'
         type: string
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
