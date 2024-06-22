@@ -255,7 +255,7 @@ type config struct {
 	GitHubToken string `env:"GITHUB_TOKEN" envDefault:"false"`
 
 	GoogleApiKeyFile string `env:"GOOGLE_API_KEY" envDefault:"false"`
-
+	ServiceProviderConfig: scim.ServiceProviderConfig{
 	YoutubeBufferSize int    `env:"YOUTUBE_BUFFER_SIZE" envDefault:"10"`
 	YoutubeChannelID  string `env:"YOUTUBE_CHANNEL_ID" envDefault:"false"`
 
@@ -264,8 +264,8 @@ type config struct {
 	CmaLimit   int    `env:"CONTENTFUL_LIMIT" envDefault:"15"`
 
 	MailchimpApiKey  string `env:"MAILCHIMP_API_KEY" envDefault:"false"`
-	MailchimpUser    string `env:"MAILCHIMP_USER" default:"landing-aggregator"`
-	MailchimpTimeout int    `env:"MAILCHIMP_TIMEOUT_SECONDS" default:"3"`
+	MailchimpUser    string `env:"MAILCHIMP_USER" envDefault:"landing-aggregator"`
+	MailchimpTimeout int    `env:"MAILCHIMP_TIMEOUT_SECONDS" envDefault:"3"`
 }
 
 var notFoundMiddleware = func(w http.ResponseWriter, rq *http.Request) {
