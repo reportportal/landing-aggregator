@@ -1,6 +1,7 @@
 @host = localhost
 @port = 8080
 
+
 OPTIONS http://{{host}}:{{port}}/mailchimp/lists/{{mailchimpListId}}/members
 
 ###

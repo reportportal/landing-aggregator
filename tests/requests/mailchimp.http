@@ -1,6 +1,16 @@
-@dc = us18
+@dc = us22
+@mailchimpMemberId = 123
 
+###
 GET https://{{dc}}.api.mailchimp.com/3.0/lists
+Authorization: Bearer {{mailchimpApiKey}}
+
+### Get
+GET https://{{dc}}.api.mailchimp.com/3.0/lists/{{mailchimpListId}}/members
+Authorization: Bearer {{mailchimpApiKey}}
+
+### Get member
+GET https://{{dc}}.api.mailchimp.com/3.0/lists/{{mailchimpListId}}/members/{{mailchimpMemberId}}
 Authorization: Bearer {{mailchimpApiKey}}
 
 ###
@@ -9,7 +19,7 @@ POST https://{{dc}}.api.mailchimp.com/3.0/lists/{{mailchimpListId}}/members
 Authorization: Bearer {{mailchimpApiKey}}
 
 {
-  "email_address": "",
+  "email_address": "some",
   "email_type": "",
   "status": "subscribed",
   "merge_fields": {},
