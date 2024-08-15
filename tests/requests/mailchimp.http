@@ -1,11 +1,8 @@
-@dc = us22
-@mailchimpMemberId = 123
-
-###
+### Get all lists
 GET https://{{dc}}.api.mailchimp.com/3.0/lists
 Authorization: Bearer {{mailchimpApiKey}}
 
-### Get
+### Get list members
 GET https://{{dc}}.api.mailchimp.com/3.0/lists/{{mailchimpListId}}/members
 Authorization: Bearer {{mailchimpApiKey}}
 
@@ -13,27 +10,20 @@ Authorization: Bearer {{mailchimpApiKey}}
 GET https://{{dc}}.api.mailchimp.com/3.0/lists/{{mailchimpListId}}/members/{{mailchimpMemberId}}
 Authorization: Bearer {{mailchimpApiKey}}
 
-###
+### Add member
 POST https://{{dc}}.api.mailchimp.com/3.0/lists/{{mailchimpListId}}/members
-  ?skip_merge_validation=true
 Authorization: Bearer {{mailchimpApiKey}}
 
 {
-  "email_address": "some",
-  "email_type": "",
-  "status": "subscribed",
-  "merge_fields": {},
-  "interests": {},
-  "language": "",
-  "vip": false,
-  "location": {
-    "latitude": 0,
-    "longitude": 0
-  },
-  "marketing_permissions": [],
-  "ip_signup": "",
-  "timestamp_signup": "",
-  "ip_opt": "",
-  "timestamp_opt": "",
-  "tags": []
+  "email_address": "",
+  "status": "pending"
+}
+
+### Update member
+PUT https://{{dc}}.api.mailchimp.com/3.0/lists/{{mailchimpListId}}/members/{{mailchimpMemberId}}
+Authorization: Bearer {{mailchimpApiKey}}
+
+{
+  "email_address": "",
+  "status": "pending"
 }
