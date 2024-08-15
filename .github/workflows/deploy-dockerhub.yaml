@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       ecr-tag:
-        description: 'ECR Tag to deploy'
+        description: 'AWS ECR tag'
         required: true
         default: 'latest'
         type: string
       target-tag:
-        description: 'DockerHub Tag to deploy'
+        description: 'Docker.io tag'
         required: true
         default: 'X.Y.Z'
         type: string
