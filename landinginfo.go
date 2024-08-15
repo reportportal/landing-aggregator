@@ -165,6 +165,9 @@ func main() {
 				w.WriteHeader(http.StatusOK)
 			}))
 			mcListRouter.Post("/", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+				if !checkMailchimpClient(mailchimpClient, w) {
+					return
+				}
 				member, err := mailchimpClient.AddSubscription(rq.Body, chi.URLParam(rq, "listID"))
 				if err != nil {
 					jsonRS(http.StatusBadRequest, map[string]string{"error": err.Error()}, w)
@@ -277,4 +280,12 @@ var enableCORSMiddleware = func(next http.Handler) http.Handler {
 		w.Header().Add("Access-Control-Allow-Origin", "*")
 		next.ServeHTTP(w, rq)
 	})
+}
+
+func checkMailchimpClient(client *info.MailchimpClient, w http.ResponseWriter) bool {
+	if client == nil {
+		jsonRS(http.StatusInternalServerError, map[string]string{"error": "Mailchimp client not initialized"}, w)
+		return false
+	}
+	return true
 }
