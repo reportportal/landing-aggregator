@@ -234,10 +234,10 @@ func buildYoutubeBuffer(conf *config) (buf *info.YoutubeBuffer, err error) {
 		}
 	}()
 
-	if conf.GoogleApiKeyFile == "" {
+	if conf.GoogleAPIKeyFile == "" {
 		return nil, errors.New("environment variable GOOGLE_API_KEY not set")
 	}
-	buf, err = info.NewYoutubeVideosBuffer(conf.YoutubeChannelID, conf.YoutubeBufferSize, conf.GoogleApiKeyFile)
+	buf, err = info.NewYoutubeVideosBuffer(conf.YoutubeChannelID, conf.YoutubeBufferSize, conf.GoogleAPIKeyFile)
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +257,9 @@ type config struct {
 	IncludeBeta bool   `env:"GITHUB_INCLUDE_BETA" envDefault:"false"`
 	GitHubToken string `env:"GITHUB_TOKEN" envDefault:"false"`
 
-	GoogleApiKeyFile string `env:"GOOGLE_API_KEY" envDefault:"false"`
+	GoogleAPIKeyFile   string `env:"GOOGLE_API_KEY" envDefault:"false"`
+	GoogleProjectID    string `env:"GOOGLE_PROJECT_ID" envDefault:"false"`
+	GoogleRecaptchaKey string `env:"GOOGLE_RECAPTCHA_KEY" envDefault:"false"`
 
 	YoutubeBufferSize int    `env:"YOUTUBE_BUFFER_SIZE" envDefault:"10"`
 	YoutubeChannelID  string `env:"YOUTUBE_CHANNEL_ID" envDefault:"false"`
