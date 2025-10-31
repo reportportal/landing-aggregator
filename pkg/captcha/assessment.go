@@ -8,7 +8,7 @@ import (
 	recaptchapb "cloud.google.com/go/recaptchaenterprise/v2/apiv1/recaptchaenterprisepb"
 )
 
-func createAssessment(projectID, recaptchaKey, token, recaptchaAction string) (*recaptchapb.Assessment, error) {
+func GetAssessment(projectID, siteKey, token, recaptchaAction string) (*recaptchapb.Assessment, error) {
 
 	ctx := context.Background()
 
@@ -20,7 +20,7 @@ func createAssessment(projectID, recaptchaKey, token, recaptchaAction string) (*
 
 	event := &recaptchapb.Event{
 		Token:   token,
-		SiteKey: recaptchaKey,
+		SiteKey: siteKey,
 	}
 
 	assessment := &recaptchapb.Assessment{
