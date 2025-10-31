@@ -92,7 +92,7 @@ Aggregator can be configured through env variables. The following configuration 
 | GOOGLE_PROJECT_ID                   |       false        | Google Cloud Project ID                       |
 | GOOGLE_RECAPTCHA_KEY                |       false        | Google reCAPTCHA Site Key                     |
 | GOOGLE_APPLICATION_CREDENTIALS      |       false        | Google Application Credentials JSON file path |
-| GOOGLE_RECAPTCHA_SUBSCRIPTION_SCORE |        0.5         | reCAPTCHA minimum score for subscription form |
+| GOOGLE_RECAPTCHA_SCORE              |        0.5         | reCAPTCHA minimum score for subscription form |
 | YOUTUBE_BUFFER_SIZE                 |         10         | Number of videos to be cached                 |
 | YOUTUBE_CHANNEL_ID                  |        Null        | YouTube channel ID                            |
 | CONTENTFUL_TOKEN                    |        Null        | Contentful API Access Token                   |

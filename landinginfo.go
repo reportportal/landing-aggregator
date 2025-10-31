@@ -263,10 +263,10 @@ type config struct {
 	IncludeBeta bool   `env:"GITHUB_INCLUDE_BETA" envDefault:"false"`
 	GitHubToken string `env:"GITHUB_TOKEN" envDefault:"false"`
 
-	GoogleAPIKeyFile        string  `env:"GOOGLE_API_KEY" envDefault:"false"`
-	GoogleProjectID         string  `env:"GOOGLE_PROJECT_ID" envDefault:"false"`
-	GoogleRecaptchaKey      string  `env:"GOOGLE_RECAPTCHA_KEY" envDefault:"false"`
-	GoogleSubscriptionScore float32 `env:"GOOGLE_RECAPTCHA_SUBSCRIPTION_SCORE" envDefault:"0.5"`
+	GoogleAPIKeyFile     string  `env:"GOOGLE_API_KEY" envDefault:"false"`
+	GoogleProjectID      string  `env:"GOOGLE_PROJECT_ID" envDefault:"false"`
+	GoogleRecaptchaKey   string  `env:"GOOGLE_RECAPTCHA_KEY" envDefault:"false"`
+	GoogleRecaptchaScore float32 `env:"GOOGLE_RECAPTCHA_SCORE" envDefault:"0.5"`
 
 	YoutubeBufferSize int    `env:"YOUTUBE_BUFFER_SIZE" envDefault:"10"`
 	YoutubeChannelID  string `env:"YOUTUBE_CHANNEL_ID" envDefault:"false"`
@@ -320,7 +320,7 @@ func checkCaptchaAssessment(conf *config, rq *http.Request, w http.ResponseWrite
 		return false
 	}
 
-	if assessment.GetRiskAnalysis().GetScore() < conf.GoogleSubscriptionScore {
+	if assessment.GetRiskAnalysis().GetScore() < conf.GoogleRecaptchaScore {
 		jsonRS(http.StatusBadRequest, map[string]string{"error": "recaptcha assessment failed: low recaptcha score"}, w)
 		return false
 	}
