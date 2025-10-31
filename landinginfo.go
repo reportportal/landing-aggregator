@@ -161,7 +161,7 @@ func main() {
 		mcRouter.Route("/lists/{listID}/members", func(mcListRouter chi.Router) {
 			mcListRouter.Options("/", func(w http.ResponseWriter, rq *http.Request) {
 				w.Header().Add("Access-Control-Allow-Methods", "OPTIONS, POST")
-				w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+				w.Header().Add("Access-Control-Allow-Headers", "Content-Type, RP-Recaptcha-Token, RP-Recaptcha-Action")
 				w.Header().Add("Access-Control-Max-Age", "86400")
 				w.WriteHeader(http.StatusOK)
 			})
@@ -315,13 +315,13 @@ func checkCaptchaAssessment(conf *config, rq *http.Request, w http.ResponseWrite
 	}
 
 	if len(assessment.GetRiskAnalysis().GetReasons()) > 0 {
-		jsonRS(http.StatusBadRequest, map[string]string{"recaptcha assessment failed": "suspicious activity detected"}, w)
+		jsonRS(http.StatusBadRequest, map[string]string{"error": "recaptcha assessment failed: suspicious activity detected"}, w)
 
 		return false
 	}
 
 	if assessment.GetRiskAnalysis().GetScore() < conf.GoogleSubscriptionScore {
-		jsonRS(http.StatusBadRequest, map[string]string{"recaptcha assessment failed": "low recaptcha score"}, w)
+		jsonRS(http.StatusBadRequest, map[string]string{"error": "recaptcha assessment failed: low recaptcha score"}, w)
 		return false
 	}
 
