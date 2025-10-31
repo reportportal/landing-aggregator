@@ -2,18 +2,20 @@ package info
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"sort"
+	"strings"
+	"sync"
+	"sync/atomic"
+	"time"
+
 	"github.com/dghubble/sling"
 	"github.com/google/go-github/v50/github"
 	"github.com/hashicorp/go-version"
 	"github.com/reportportal/commons-go/v5/commons"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
-	"sort"
-	"strings"
-	"sync"
-	"sync/atomic"
-	"time"
 )
 
 // StatRange represents statistics calculation range in weeks
@@ -33,6 +35,7 @@ const (
 	issueQueryTemplate string = "is:%s is:%s user:" + rpOrg
 
 	repoSyncPeriod             time.Duration = time.Hour * 4
+	repoRetryMinDelay          time.Duration = time.Minute
 	versionsSyncPeriod         time.Duration = time.Hour
 	contributorStatsSyncPeriod time.Duration = time.Hour * 12
 	commitsStatsSyncPeriod     time.Duration = time.Hour * 6
@@ -87,6 +90,13 @@ func NewGitHubAggregator(ghToken string, includeBeta bool) *GitHubAggregator {
 		uniqueContributors: atomic.Value{},
 		issueStats:         atomic.Value{},
 	}
+
+	//initial empty values for atomic stores
+	stats.repos.Store([]*github.Repository{})
+	stats.latestTags.Store(map[string]string{})
+	stats.commitStats.Store(map[StatRange]int{})
+	stats.uniqueContributors.Store(map[StatRange]int{})
+	stats.issueStats.Store(&IssueStats{})
 
 	//schedules updates of repos
 	stats.loadRepos()
@@ -295,8 +305,32 @@ func (s *GitHubAggregator) loadRepos() {
 	for {
 		repos, resp, err := s.c.Repositories.ListByOrg(context.Background(), rpOrg, opt)
 		if err != nil {
-			log.Errorf("Cannot get repositories list: ma%v", err)
-			continue
+			var rateErr *github.RateLimitError
+			var abuseErr *github.AbuseRateLimitError
+
+			switch {
+			case errors.As(err, &rateErr):
+				wait := time.Until(rateErr.Rate.Reset.Time)
+				if wait <= 0 {
+					wait = repoRetryMinDelay
+				}
+				if wait > repoSyncPeriod {
+					wait = repoSyncPeriod
+				}
+				log.Warnf("Cannot get repositories list: GitHub rate limit exceeded, keeping cached list for approximately %s", wait.Truncate(time.Second))
+				s.scheduleReposReload(wait)
+			case errors.As(err, &abuseErr):
+				wait := repoRetryMinDelay
+				if abuseErr.RetryAfter != nil && *abuseErr.RetryAfter > 0 {
+					wait = *abuseErr.RetryAfter
+				}
+				log.Warnf("Cannot get repositories list: GitHub abuse detection triggered, keeping cached list for approximately %s", wait.Truncate(time.Second))
+				s.scheduleReposReload(wait)
+			default:
+				log.Errorf("Cannot get repositories list: %v", err)
+				s.scheduleReposReload(repoRetryMinDelay)
+			}
+			return
 		}
 		allRepos = append(allRepos, repos...)
 		if resp.NextPage == 0 {
@@ -307,6 +341,15 @@ func (s *GitHubAggregator) loadRepos() {
 	log.Infof("%d repositories found", len(allRepos))
 	s.repos.Store(allRepos)
 
+}
+
+func (s *GitHubAggregator) scheduleReposReload(after time.Duration) {
+	if after < repoRetryMinDelay {
+		after = repoRetryMinDelay
+	}
+	time.AfterFunc(after, func() {
+		s.loadRepos()
+	})
 }
 
 // GetLatestTags returns copy of latest versions/tags map
