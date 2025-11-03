@@ -14,6 +14,7 @@ import (
 	"github.com/reportportal/commons-go/v5/commons"
 	"github.com/reportportal/commons-go/v5/server"
 	"github.com/reportportal/landing-aggregator/info"
+	"github.com/reportportal/landing-aggregator/pkg/captcha"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -62,19 +63,19 @@ func main() {
 
 	var mailchimpClient *info.MailchimpClient
 
-	if conf.MailchimpApiKey == "false" {
+	if conf.MailchimpAPIKey == "false" {
 		log.Error("Environment variable MAILCHIMP_API_KEY not set.")
 	} else {
-		mailchimpClient = info.NewMailchimpClient(conf.MailchimpApiKey)
+		mailchimpClient = info.NewMailchimpClient(conf.MailchimpAPIKey)
 		mailchimpClient.User = conf.MailchimpUser
 		mailchimpClient.Timeout = time.Duration(conf.MailchimpTimeout) * time.Second
 	}
 
-	var ghAggr *info.GitHubAggregator
+	var ghAggregator *info.GitHubAggregator
 	if conf.GitHubToken == "false" {
 		log.Error("Environment variable GITHUB_TOKEN not set.")
 	} else {
-		ghAggr = info.NewGitHubAggregator(conf.GitHubToken, conf.IncludeBeta)
+		ghAggregator = info.NewGitHubAggregator(conf.GitHubToken, conf.IncludeBeta)
 	}
 
 	var youtubeBuffer *info.YoutubeBuffer
@@ -101,14 +102,14 @@ func main() {
 		jsonRS(http.StatusOK, buildInfo, w)
 	})
 
-	router.Get("/twitter", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+	router.Get("/twitter", func(w http.ResponseWriter, rq *http.Request) {
 		count := getQueryIntParam(rq, "count", conf.CmaLimit)
 		if count > conf.CmaLimit {
 			jsonpRS(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("provided count exceed max allower value (%d)", conf.CmaLimit)}, w, rq)
 			return
 		}
 		jsonpRS(http.StatusOK, info.GetTwitterFeed(cma, count), w, rq)
-	}))
+	})
 
 	router.Get("/youtube", func(w http.ResponseWriter, rq *http.Request) {
 		count := getQueryIntParam(rq, "count", defaultYoutubeRSCount)
@@ -120,24 +121,24 @@ func main() {
 	})
 
 	router.Get("/versions", func(w http.ResponseWriter, rq *http.Request) {
-		jsonpRS(http.StatusOK, ghAggr.GetLatestTags(), w, rq)
+		jsonpRS(http.StatusOK, ghAggregator.GetLatestTags(), w, rq)
 	})
 
 	//GitHub-related routes
 	router.Route("/github/", func(ghRouter chi.Router) {
-		ghRouter.Get("/stars", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
-			jsonRS(http.StatusOK, ghAggr.GetStars(), w)
-		}))
-		ghRouter.Get("/contribution", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
-			jsonRS(http.StatusOK, ghAggr.GetContributionStats(), w)
-		}))
-		ghRouter.Get("/issues", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
-			jsonRS(http.StatusOK, ghAggr.GetIssueStats(), w)
-		}))
+		ghRouter.Get("/stars", func(w http.ResponseWriter, rq *http.Request) {
+			jsonRS(http.StatusOK, ghAggregator.GetStars(), w)
+		})
+		ghRouter.Get("/contribution", func(w http.ResponseWriter, rq *http.Request) {
+			jsonRS(http.StatusOK, ghAggregator.GetContributionStats(), w)
+		})
+		ghRouter.Get("/issues", func(w http.ResponseWriter, rq *http.Request) {
+			jsonRS(http.StatusOK, ghAggregator.GetIssueStats(), w)
+		})
 	})
 
 	// aggregate everything into on rs
-	router.Get("/", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+	router.Get("/", func(w http.ResponseWriter, rq *http.Request) {
 		rs := map[string]interface{}{}
 
 		rs["build"] = buildInfo
@@ -145,36 +146,41 @@ func main() {
 		rs["youtube"] = youtubeBuffer.GetVideos(defaultYoutubeRSCount)
 
 		ghStats := map[string]interface{}{
-			"stars":              ghAggr.GetStars(),
-			"contribution_stats": ghAggr.GetContributionStats(),
-			"issue_stats":        ghAggr.GetIssueStats(),
+			"stars":              ghAggregator.GetStars(),
+			"contribution_stats": ghAggregator.GetContributionStats(),
+			"issue_stats":        ghAggregator.GetIssueStats(),
 		}
 		rs["github"] = ghStats
-		rs["latest_versions"] = ghAggr.GetLatestTags()
+		rs["latest_versions"] = ghAggregator.GetLatestTags()
 
 		jsonRS(http.StatusOK, rs, w)
-	}))
+	})
 
 	// Mailchimp-related routes
 	router.Route("/mailchimp/", func(mcRouter chi.Router) {
 		mcRouter.Route("/lists/{listID}/members", func(mcListRouter chi.Router) {
-			mcListRouter.Options("/", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+			mcListRouter.Options("/", func(w http.ResponseWriter, rq *http.Request) {
 				w.Header().Add("Access-Control-Allow-Methods", "OPTIONS, POST")
-				w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+				w.Header().Add("Access-Control-Allow-Headers", "Content-Type, RP-Recaptcha-Token, RP-Recaptcha-Action")
 				w.Header().Add("Access-Control-Max-Age", "86400")
 				w.WriteHeader(http.StatusOK)
-			}))
-			mcListRouter.Post("/", http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+			})
+			mcListRouter.Post("/", func(w http.ResponseWriter, rq *http.Request) {
 				if !checkMailchimpClient(mailchimpClient, w) {
 					return
 				}
+
+				if !checkCaptchaAssessment(conf, rq, w) {
+					return
+				}
+
 				member, err := mailchimpClient.AddSubscription(rq.Body, chi.URLParam(rq, "listID"))
 				if err != nil {
 					jsonRS(http.StatusBadRequest, map[string]string{"error": err.Error()}, w)
 					return
 				}
 				jsonRS(http.StatusOK, member, w)
-			}))
+			})
 		})
 	})
 
@@ -234,10 +240,10 @@ func buildYoutubeBuffer(conf *config) (buf *info.YoutubeBuffer, err error) {
 		}
 	}()
 
-	if conf.GoogleApiKeyFile == "" {
+	if conf.GoogleAPIKeyFile == "" {
 		return nil, errors.New("environment variable GOOGLE_API_KEY not set")
 	}
-	buf, err = info.NewYoutubeVideosBuffer(conf.YoutubeChannelID, conf.YoutubeBufferSize, conf.GoogleApiKeyFile)
+	buf, err = info.NewYoutubeVideosBuffer(conf.YoutubeChannelID, conf.YoutubeBufferSize, conf.GoogleAPIKeyFile)
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +263,10 @@ type config struct {
 	IncludeBeta bool   `env:"GITHUB_INCLUDE_BETA" envDefault:"false"`
 	GitHubToken string `env:"GITHUB_TOKEN" envDefault:"false"`
 
-	GoogleApiKeyFile string `env:"GOOGLE_API_KEY" envDefault:"false"`
+	GoogleAPIKeyFile     string  `env:"GOOGLE_API_KEY" envDefault:"false"`
+	GoogleProjectID      string  `env:"GOOGLE_PROJECT_ID" envDefault:"false"`
+	GoogleRecaptchaKey   string  `env:"GOOGLE_RECAPTCHA_KEY" envDefault:"false"`
+	GoogleRecaptchaScore float32 `env:"GOOGLE_RECAPTCHA_SCORE" envDefault:"0.5"`
 
 	YoutubeBufferSize int    `env:"YOUTUBE_BUFFER_SIZE" envDefault:"10"`
 	YoutubeChannelID  string `env:"YOUTUBE_CHANNEL_ID" envDefault:"false"`
@@ -266,7 +275,7 @@ type config struct {
 	CmaSpaceID string `env:"CONTENTFUL_SPACE_ID" envDefault:"1n1nntnzoxp4"`
 	CmaLimit   int    `env:"CONTENTFUL_LIMIT" envDefault:"15"`
 
-	MailchimpApiKey  string `env:"MAILCHIMP_API_KEY" envDefault:"false"`
+	MailchimpAPIKey  string `env:"MAILCHIMP_API_KEY" envDefault:"false"`
 	MailchimpUser    string `env:"MAILCHIMP_USER" envDefault:"landing-aggregator"`
 	MailchimpTimeout int    `env:"MAILCHIMP_TIMEOUT_SECONDS" envDefault:"3"`
 }
@@ -287,5 +296,34 @@ func checkMailchimpClient(client *info.MailchimpClient, w http.ResponseWriter) b
 		jsonRS(http.StatusInternalServerError, map[string]string{"error": "Mailchimp client not initialized"}, w)
 		return false
 	}
+	return true
+}
+
+func checkCaptchaAssessment(conf *config, rq *http.Request, w http.ResponseWriter) bool {
+	token := rq.Header.Get("RP-Recaptcha-Token")
+	action := rq.Header.Get("RP-Recaptcha-Action")
+
+	assessment, err := captcha.GetAssessment(
+		conf.GoogleProjectID,
+		conf.GoogleRecaptchaKey,
+		token,
+		action,
+	)
+	if err != nil {
+		jsonRS(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("recaptcha assessment error: %v", err)}, w)
+		return false
+	}
+
+	if len(assessment.GetRiskAnalysis().GetReasons()) > 0 {
+		jsonRS(http.StatusBadRequest, map[string]string{"error": "recaptcha assessment failed: suspicious activity detected"}, w)
+
+		return false
+	}
+
+	if assessment.GetRiskAnalysis().GetScore() < conf.GoogleRecaptchaScore {
+		jsonRS(http.StatusBadRequest, map[string]string{"error": "recaptcha assessment failed: low recaptcha score"}, w)
+		return false
+	}
+
 	return true
 }
