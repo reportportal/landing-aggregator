@@ -36,9 +36,9 @@ jobs:
       - name: Run tests
         run: go test -v ./...
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@v8
         with:
-          version: 'v1.56'
+          version: 'v2.6.0'
           args:
             --timeout=10m
             --fast
