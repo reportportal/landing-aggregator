@@ -41,8 +41,7 @@ jobs:
           version: 'v2.6.0'
           args:
             --timeout=10m
-            --disable=errcheck
-            --disable=gas
+            --fast-only
   call-docker-build:
     name: Call release candidate Docker build
     needs: golangci
