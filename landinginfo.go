@@ -314,14 +314,12 @@ func checkCaptchaAssessment(conf *config, rq *http.Request, w http.ResponseWrite
 		return false
 	}
 
-	if len(assessment.GetRiskAnalysis().GetReasons()) > 0 {
-		jsonRS(http.StatusBadRequest, map[string]string{"error": "recaptcha assessment failed: suspicious activity detected"}, w)
-
-		return false
-	}
-
 	if assessment.GetRiskAnalysis().GetScore() < conf.GoogleRecaptchaScore {
-		jsonRS(http.StatusBadRequest, map[string]string{"error": "recaptcha assessment failed: low recaptcha score"}, w)
+		jsonRS(http.StatusBadRequest, map[string]string{
+			"error":  "recaptcha assessment failed: low recaptcha score",
+			"score":  fmt.Sprint(assessment.GetRiskAnalysis().GetScore()),
+			"reason": fmt.Sprint(assessment.GetRiskAnalysis().GetReasons()[0]),
+		}, w)
 		return false
 	}
 
