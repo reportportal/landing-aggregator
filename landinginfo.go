@@ -263,10 +263,11 @@ type config struct {
 	IncludeBeta bool   `env:"GITHUB_INCLUDE_BETA" envDefault:"false"`
 	GitHubToken string `env:"GITHUB_TOKEN" envDefault:"false"`
 
-	GoogleAPIKeyFile     string  `env:"GOOGLE_API_KEY" envDefault:"false"`
-	GoogleProjectID      string  `env:"GOOGLE_PROJECT_ID" envDefault:"false"`
-	GoogleRecaptchaKey   string  `env:"GOOGLE_RECAPTCHA_KEY" envDefault:"false"`
-	GoogleRecaptchaScore float32 `env:"GOOGLE_RECAPTCHA_SCORE" envDefault:"0.5"`
+	GoogleAPIKeyFile      string  `env:"GOOGLE_API_KEY" envDefault:"false"`
+	GoogleProjectID       string  `env:"GOOGLE_PROJECT_ID" envDefault:"false"`
+	GoogleRecaptchaKey    string  `env:"GOOGLE_RECAPTCHA_KEY" envDefault:"false"`
+	GoogleRecaptchaScore  float32 `env:"GOOGLE_RECAPTCHA_SCORE" envDefault:"0.5"`
+	GoogleRecaptchaAction string  `env:"GOOGLE_RECAPTCHA_ACTION" envDefault:"contact_us"`
 
 	YoutubeBufferSize int    `env:"YOUTUBE_BUFFER_SIZE" envDefault:"10"`
 	YoutubeChannelID  string `env:"YOUTUBE_CHANNEL_ID" envDefault:"false"`
@@ -301,7 +302,7 @@ func checkMailchimpClient(client *info.MailchimpClient, w http.ResponseWriter) b
 
 func checkCaptchaAssessment(conf *config, rq *http.Request, w http.ResponseWriter) bool {
 	token := rq.Header.Get("RP-Recaptcha-Token")
-	action := rq.Header.Get("RP-Recaptcha-Action")
+	action := conf.GoogleRecaptchaAction
 
 	assessment, err := captcha.GetAssessment(
 		conf.GoogleProjectID,
