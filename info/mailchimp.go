@@ -25,10 +25,13 @@ type MailchimpMemberRequest = gochimp3.MemberRequest
 type MailchimpMemberStatus string
 
 const (
-	MailchimpMemberSubscribed   MailchimpMemberStatus = "subscribed"
-	MailchimpMemberUnsubscribed MailchimpMemberStatus = "unsubscribed"
-	MailchimpMemberPending      MailchimpMemberStatus = "pending"
-	MailchimpMemberNone         MailchimpMemberStatus = ""
+	MailchimpMemberSubscribed    MailchimpMemberStatus = "subscribed"
+	MailchimpMemberUnsubscribed  MailchimpMemberStatus = "unsubscribed"
+	MailchimpMemberPending       MailchimpMemberStatus = "pending"
+	MailchimpMemberCleaned       MailchimpMemberStatus = "cleaned"
+	MailchimpMemberTransactional MailchimpMemberStatus = "transactional"
+	MailchimpMemberArchived      MailchimpMemberStatus = "archived"
+	MailchimpMemberNone          MailchimpMemberStatus = ""
 )
 
 func NewMailchimpClient(apiKey string) *MailchimpClient {
@@ -53,26 +56,30 @@ func (client *MailchimpClient) AddSubscription(rq io.Reader, listId string) (*Ma
 	}
 
 	switch status {
+	case MailchimpMemberUnsubscribed:
+		// Allow resubscription for unsubscribed members
+	case MailchimpMemberNone:
+		memberRequest.StatusIfNew = memberRequest.Status
 	case MailchimpMemberSubscribed:
 		return nil, errors.New("email address already subscribed")
 	case MailchimpMemberPending:
 		return nil, errors.New("email address already pending")
-	case MailchimpMemberUnsubscribed:
-	case MailchimpMemberNone:
-		memberRequest.StatusIfNew = memberRequest.Status
+	case MailchimpMemberCleaned, MailchimpMemberTransactional, MailchimpMemberArchived:
+		return nil, fmt.Errorf("cannot subscribe email address with status: %s", status)
 	default:
-		return nil, errors.New("internal error")
+		return nil, fmt.Errorf("unexpected member status: %s", status)
 	}
 
 	response, err := list.AddOrUpdateMember(memberRequest.EmailAddress, memberRequest)
 	if err != nil {
-		if apiErr, ok := err.(*gochimp3.APIError); ok {
-			if apiErr.Title == "Member In Compliance State" {
-				return list.ResubsribeMember(memberRequest.EmailAddress, memberRequest)
-			}
-			return nil, apiErr
+		apiErr, ok := err.(*gochimp3.APIError)
+		if !ok {
+			return nil, err
 		}
-		return nil, err
+		if apiErr.Title == "Member In Compliance State" {
+			return list.ResubscribeMember(memberRequest.EmailAddress, memberRequest)
+		}
+		return nil, apiErr
 	}
 	return response, nil
 }
@@ -122,7 +129,7 @@ func (l *MailchimpList) getMemberStatus(rq *MailchimpMemberRequest) (MailchimpMe
 	return MailchimpMemberStatus(member.Status), nil
 }
 
-func (l *MailchimpList) ResubsribeMember(email string, rq *MailchimpMemberRequest) (*MailchimpMember, error) {
+func (l *MailchimpList) ResubscribeMember(email string, rq *MailchimpMemberRequest) (*MailchimpMember, error) {
 	rq.Status = "pending"
 	return l.UpdateMember(email, rq)
 }
