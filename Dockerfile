@@ -1,4 +1,4 @@
-FROM --platform=${BUILDPLATFORM} golang:1.25.3-alpine3.22 AS builder
+FROM --platform=${BUILDPLATFORM} golang:1.26-alpine3.23 AS builder
 
 ENV APP_DIR=/go/src/github.com/org/repos
 
@@ -11,7 +11,7 @@ WORKDIR ${APP_DIR}
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
   -o app ./landinginfo.go
 
-FROM --platform=${BUILDPLATFORM}  alpine:3.22
+FROM --platform=${BUILDPLATFORM}  alpine:3.23
 ENV APP_DIR=/go/src/github.com/org/repos
 ARG APP_VERSION
 
