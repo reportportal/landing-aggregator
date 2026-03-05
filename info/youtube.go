@@ -7,10 +7,11 @@ import (
 
 	"google.golang.org/api/option"
 
+	"context"
+
 	"github.com/pkg/errors"
 	"github.com/reportportal/commons-go/v5/commons"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
 	"google.golang.org/api/googleapi"
 	"google.golang.org/api/youtube/v3"
 )

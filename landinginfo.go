@@ -14,7 +14,6 @@ import (
 	"github.com/reportportal/commons-go/v5/commons"
 	"github.com/reportportal/commons-go/v5/server"
 	"github.com/reportportal/landing-aggregator/info"
-	"github.com/reportportal/landing-aggregator/pkg/captcha"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -170,10 +169,6 @@ func main() {
 					return
 				}
 
-				if !checkCaptchaAssessment(conf, rq, w) {
-					return
-				}
-
 				member, err := mailchimpClient.AddSubscription(rq.Body, chi.URLParam(rq, "listID"))
 				if err != nil {
 					jsonRS(http.StatusBadRequest, map[string]string{"error": err.Error()}, w)
@@ -263,11 +258,7 @@ type config struct {
 	IncludeBeta bool   `env:"GITHUB_INCLUDE_BETA" envDefault:"false"`
 	GitHubToken string `env:"GITHUB_TOKEN" envDefault:"false"`
 
-	GoogleAPIKeyFile      string  `env:"GOOGLE_API_KEY" envDefault:"false"`
-	GoogleProjectID       string  `env:"GOOGLE_PROJECT_ID" envDefault:"false"`
-	GoogleRecaptchaKey    string  `env:"GOOGLE_RECAPTCHA_KEY" envDefault:"false"`
-	GoogleRecaptchaScore  float32 `env:"GOOGLE_RECAPTCHA_SCORE" envDefault:"0.5"`
-	GoogleRecaptchaAction string  `env:"GOOGLE_RECAPTCHA_ACTION" envDefault:"contact_us"`
+	GoogleAPIKeyFile string `env:"GOOGLE_API_KEY" envDefault:"false"`
 
 	YoutubeBufferSize int    `env:"YOUTUBE_BUFFER_SIZE" envDefault:"10"`
 	YoutubeChannelID  string `env:"YOUTUBE_CHANNEL_ID" envDefault:"false"`
@@ -297,32 +288,5 @@ func checkMailchimpClient(client *info.MailchimpClient, w http.ResponseWriter) b
 		jsonRS(http.StatusInternalServerError, map[string]string{"error": "Mailchimp client not initialized"}, w)
 		return false
 	}
-	return true
-}
-
-func checkCaptchaAssessment(conf *config, rq *http.Request, w http.ResponseWriter) bool {
-	token := rq.Header.Get("RP-Recaptcha-Token")
-	action := conf.GoogleRecaptchaAction
-
-	assessment, err := captcha.GetAssessment(
-		conf.GoogleProjectID,
-		conf.GoogleRecaptchaKey,
-		token,
-		action,
-	)
-	if err != nil {
-		jsonRS(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("recaptcha assessment error: %v", err)}, w)
-		return false
-	}
-
-	if assessment.GetRiskAnalysis().GetScore() < conf.GoogleRecaptchaScore {
-		jsonRS(http.StatusBadRequest, map[string]string{
-			"error":  "recaptcha assessment failed: low recaptcha score",
-			"score":  fmt.Sprint(assessment.GetRiskAnalysis().GetScore()),
-			"reason": fmt.Sprint(assessment.GetRiskAnalysis().GetReasons()[0]),
-		}, w)
-		return false
-	}
-
 	return true
 }
