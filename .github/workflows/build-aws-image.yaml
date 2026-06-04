@@ -36,7 +36,7 @@ jobs:
       - name: Run tests
         run: go test -v ./...
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@v9
         with:
           version: 'v2.10.1'
           args:
@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Create release
         uses: comnoco/create-release-action@v2.0.5
         env:
