@@ -1,9 +1,11 @@
+# syntax=docker/dockerfile:1
+
 FROM --platform=${BUILDPLATFORM} golang:1.26-alpine3.23 AS builder
 
 ENV APP_DIR=/go/src/github.com/org/repos
 
-ARG TARGETOS=linux
-ARG TARGETARCH=amd64
+ARG TARGETOS
+ARG TARGETARCH
 
 ADD . ${APP_DIR}
 WORKDIR ${APP_DIR}
@@ -11,7 +13,7 @@ WORKDIR ${APP_DIR}
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
   -o app ./landinginfo.go
 
-FROM --platform=${BUILDPLATFORM}  alpine:3.23
+FROM --platform=${TARGETPLATFORM} alpine:3.23
 ENV APP_DIR=/go/src/github.com/org/repos
 ARG APP_VERSION
 
