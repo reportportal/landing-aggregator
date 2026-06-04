@@ -21,8 +21,15 @@ permissions:
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY || github.event.repository.name }}
-  TARGET_REGISTRY: ${{ vars.TARGET_REGISTRY || 'docker.io' }}
-  TARGET_REPOSITORY: ${{ vars.TARGET_REPOSITORY || 'reportportal/landing-aggregator' }}
+  # Docker Hub login host (not the org/namespace — use reportportal/landing-aggregator for the image path)
+  REGISTRY_HOST: docker.io
+  IMAGE_NAME: >-
+    ${{
+      contains(vars.TARGET_REPOSITORY, '/') && vars.TARGET_REPOSITORY
+      || format('{0}/{1}',
+           (!vars.TARGET_REGISTRY || contains(vars.TARGET_REGISTRY, '.')) && 'reportportal' || vars.TARGET_REGISTRY,
+           vars.TARGET_REPOSITORY || github.event.repository.name)
+    }}
 
 jobs:
   manual-deploy:
@@ -44,10 +51,10 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Login to target registry
+      - name: Login to Docker Hub
         uses: docker/login-action@v4
         with:
-          registry: ${{ env.TARGET_REGISTRY }}
+          registry: ${{ env.REGISTRY_HOST }}
           username: ${{ secrets.REGISTRY_USERNAME || secrets.REGESTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD || secrets.REGESTRY_PASSWORD }}
 
@@ -65,8 +72,8 @@ jobs:
         run: |
           docker buildx imagetools create \
             $ECR_REGISTRY/$ECR_REPOSITORY:$ECR_TAG \
-            --tag $TARGET_REGISTRY/$TARGET_REPOSITORY:$IMAGE_TAG \
-            --tag $TARGET_REGISTRY/$TARGET_REPOSITORY:latest
+            --tag $IMAGE_NAME:$IMAGE_TAG \
+            --tag $IMAGE_NAME:latest
 
       - name: Summary
         env:
@@ -75,7 +82,7 @@ jobs:
           {
             echo "## Docker Release Summary"
             echo ""
-            echo "- Image: $TARGET_REGISTRY/$TARGET_REPOSITORY:$IMAGE_TAG"
+            echo "- Image: $IMAGE_NAME:$IMAGE_TAG"
             echo "- ECR source: $ECR_REPOSITORY:${{ inputs.ecr-tag }}"
             echo "- Commit: [$GITHUB_SHA](https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA)"
           } >> $GITHUB_STEP_SUMMARY

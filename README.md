@@ -98,6 +98,30 @@ Aggregator can be configured through env variables. The following configuration 
 | MAILCHIMP_USER                      | landing-aggregator | MailChimp User                                |
 | MAILCHIMP_TIMEOUT_SECONDS           |         3          | MailChimp Requests Timeout                    |
 
+## CI/CD (Docker Hub release)
+
+| Workflow | Trigger | Use case |
+|----------|---------|----------|
+| [dockerhub-release.yaml](.github/workflows/dockerhub-release.yaml) | PR approved | RC release from ECR `:latest` |
+| [deploy-dockerhub.yaml](.github/workflows/deploy-dockerhub.yaml) | Manual | Custom `ecr-tag` and `target-tag` |
+
+### GitHub variables (common mistake)
+
+`TARGET_REGISTRY` must be a **registry hostname** (e.g. `docker.io`), not the Docker Hub org name.
+
+| Variable | Correct value | Wrong value |
+|----------|---------------|-------------|
+| `TARGET_REGISTRY` | `docker.io` | `reportportal` |
+| `TARGET_REPOSITORY` | `reportportal/landing-aggregator` | `landing-aggregator` |
+
+Workflows default to `docker.io` + `reportportal/landing-aggregator` and tolerate legacy values where `TARGET_REGISTRY` was set to the org name.
+
+### Secrets
+
+- `AWS_ROLE_ARN` — OIDC role for ECR access
+- `REGISTRY_USERNAME` / `REGISTRY_PASSWORD` — Docker Hub (fallback: `REGESTRY_*`)
+- GitHub environment **`rc`** — required for PR-based release
+
 ## Production deployment
 
 Several instances of app should be deployed to provide fault-tolerance and distribute load.
